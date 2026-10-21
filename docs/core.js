@@ -85,37 +85,64 @@ export function detectPoisoning(addr, transfers, txs) {
   return hits;
 }
 
-export function extractApprovals(addr, txs) {
+const APPROVAL_METHODS = new Set(["approve", "setApprovalForAll", "increaseAllowance"]);
+const NFT_TYPES = new Set(["ERC-721", "ERC-1155"]);
+const ZERO = "0x0000000000000000000000000000000000000000";
+// Exact method name: "approve(address,uint256)" -> "approve"; "approveAndCall" never matches.
+const methodName = t => String(t.method || t.decoded_input?.method_call || "").split("(")[0].trim();
+const isApprovalTx = (me, t) => lc(t.from?.hash) === me && t.status === "ok" && APPROVAL_METHODS.has(methodName(t));
+
+// Token contracts this wallet sent approval calls to (looked up before parsing to learn ERC-20 vs NFT).
+export function approvalTokens(addr, txs) {
+  const me = lc(addr); return [...new Set(txs.filter(t => isApprovalTx(me, t)).map(t => lc(t.to?.hash)).filter(Boolean))];
+}
+
+// tokenTypes: { [lowercased token address]: "ERC-20" | "ERC-721" | "ERC-1155" | ... } from /tokens/{address}.
+export function extractApprovals(addr, txs, tokenTypes = {}) {
   const me = lc(addr); const map = new Map();
   for (const t of [...txs].reverse()) { // oldest first, latest wins
-    if (lc(t.from?.hash) !== me || t.status !== "ok") continue;
-    const m = t.method || t.decoded_input?.method_call || "";
-    if (!/^(approve|setApprovalForAll|increaseAllowance)/.test(m)) continue;
+    if (!isApprovalTx(me, t)) continue;
+    const m = methodName(t); const token = lc(t.to?.hash);
     const p = t.decoded_input?.parameters || [];
-    const spender = lc((p.find(x => /spender|operator/i.test(x.name)) || p[0] || {}).value);
-    const raw = String((p.find(x => /amount|value|approved|addedValue/i.test(x.name)) || p[1] || {}).value ?? "");
-    const unlimited = raw === "true" || BigInt(/^\d+$/.test(raw) ? raw : "0").toString(16).length >= MAX_UINT_HEX_LEN;
-    const revoked = raw === "0" || raw === "false";
-    const key = `${lc(t.to?.hash)}|${spender}`;
-    map.set(key, { token: t.to?.hash, tokenName: t.to?.name || short(t.to?.hash), spender, method: m.split("(")[0],
-      unlimited, revoked, tx: t.hash, ts: t.timestamp });
+    const arg = (re, i) => (p.find(x => re.test(x.name || "")) || p[i] || {}).value;
+    const tokenType = tokenTypes[token] || null;
+    const base = { token: t.to?.hash, tokenName: t.to?.name || short(t.to?.hash), tokenType, method: m, tx: t.hash, ts: t.timestamp };
+    if (m === "setApprovalForAll") { // ERC-721/1155 operator approval: covers every NFT in the collection
+      const spender = lc(arg(/operator/i, 0)); const on = String(arg(/approved/i, 1)) === "true";
+      map.set(`${token}|all|${spender}`, { ...base, nft: true, scope: "all", spender, unlimited: on, revoked: !on });
+    } else if (m === "approve" && (NFT_TYPES.has(tokenType) || p.some(x => /tokenid/i.test(x.name || "")))) {
+      // ERC-721 approve(to, tokenId): one approved address per token id; approve(0x0, id) clears it.
+      const spender = lc(arg(/^(to|approved|spender|operator)$/i, 0)); const tokenId = String(arg(/tokenid/i, 1) ?? "");
+      map.set(`${token}|id|${tokenId}`, { ...base, nft: true, scope: "single", tokenId, spender, unlimited: false, revoked: !spender || spender === ZERO });
+    } else { // ERC-20 allowance
+      const spender = lc(arg(/spender/i, 0));
+      const raw = String(arg(/amount|value|addedValue/i, 1) ?? "");
+      const unlimited = /^\d+$/.test(raw) && BigInt(raw).toString(16).length >= MAX_UINT_HEX_LEN;
+      map.set(`${token}|${spender}`, { ...base, nft: false, scope: "amount", spender, unlimited, revoked: raw === "0" });
+    }
   }
   return [...map.values()].filter(a => !a.revoked);
 }
 
-export async function enrichSpenders(bs, chainId, approvals) {
-  const uniq = [...new Set(approvals.map(a => a.spender).filter(Boolean))].slice(0, 15);
-  const toks = [...new Set(approvals.map(a => lc(a.token)).filter(Boolean))].slice(0, 15);
-  const info = {}, tinfo = {};
-  await Promise.all([
-    ...uniq.map(async s => { info[s] = await bs.get(chainId, `/addresses/${s}`).catch(() => null); }),
-    ...toks.map(async t => { tinfo[t] = await bs.get(chainId, `/tokens/${t}`).catch(() => null); }),
-  ]);
+// Fetch token metadata (symbol/type) once per token contract.
+export async function fetchTokens(bs, chainId, tokens) {
+  const out = {};
+  await Promise.all([...new Set(tokens.map(lc).filter(Boolean))].map(async t => { out[t] = await bs.get(chainId, `/tokens/${t}`).catch(() => null); }));
+  return out;
+}
+
+// Looks up EVERY spender (the request limiter keeps this polite). A spender whose lookup errored is
+// "unknown" (spenderVerified === null), never silently "unverified".
+export async function enrichSpenders(bs, chainId, approvals, tokenInfo = null) {
+  const uniq = [...new Set(approvals.map(a => a.spender).filter(Boolean))];
+  const tinfo = tokenInfo || await fetchTokens(bs, chainId, approvals.map(a => a.token));
+  const info = {}, failed = new Set();
+  await Promise.all(uniq.map(async s => { info[s] = await bs.get(chainId, `/addresses/${s}`).catch(() => { failed.add(s); return null; }); }));
   for (const a of approvals) {
     const i = info[a.spender]; const ti = tinfo[lc(a.token)];
-    if (ti?.symbol) a.tokenName = ti.symbol; a.tokenType = ti?.type || null;
+    if (ti?.symbol) a.tokenName = ti.symbol; a.tokenType = ti?.type || a.tokenType || null;
     a.spenderName = i?.name || i?.metadata?.tags?.[0]?.name || null;
-    a.spenderVerified = !!i?.is_verified; a.spenderIsContract = !!i?.is_contract;
+    a.spenderVerified = failed.has(a.spender) ? null : !!i?.is_verified; a.spenderIsContract = !!i?.is_contract;
     a.spenderScam = !!i?.is_scam || (i?.metadata?.tags || []).some(t => /scam|phish|exploit/i.test(t.name || t.slug || ""));
   }
   return approvals;
@@ -134,7 +161,9 @@ export async function scanChain(bs, chainId, addr) {
   ]);
   const active = (counters && Number(counters.transactions_count) > 0) || txs.length > 0 || transfers.length > 0 || Number(info.coin_balance) > 0;
   if (!active) return { chainId, active: false };
-  const approvals = await enrichSpenders(bs, chainId, extractApprovals(addr, txs));
+  const tokenInfo = await fetchTokens(bs, chainId, approvalTokens(addr, txs));
+  const tokenTypes = Object.fromEntries(Object.entries(tokenInfo).map(([k, v]) => [k, v?.type || null]));
+  const approvals = await enrichSpenders(bs, chainId, extractApprovals(addr, txs, tokenTypes), tokenInfo);
   const poisoning = detectPoisoning(addr, transfers, txs);
   const tokens = (Array.isArray(balances) ? balances : balances?.items || []).filter(b => b.token?.type === "ERC-20" || !b.token?.type).map(b => ({ symbol: b.token?.symbol, name: b.token?.name, address: b.token?.address_hash || b.token?.address,
     value: Number(b.value) / 10 ** Number(b.token?.decimals || 18), usd: b.token?.exchange_rate ? Number(b.value) / 10 ** Number(b.token.decimals || 18) * Number(b.token.exchange_rate) : null,
@@ -154,9 +183,12 @@ export function score(chains) {
   for (const c of chains.filter(c => c.active)) {
     const n = CHAINS[c.chainId]?.name || c.chainId;
     for (const a of c.approvals) {
+      const what = a.scope === "all" ? `Approval for ALL ${a.tokenName} NFTs` : a.scope === "single" ? `Approval of ${a.tokenName} NFT #${a.tokenId}` : `Unlimited approval on ${a.tokenName}`;
       if (a.spenderScam) { s -= 30; findings.push({ sev: "high", chain: n, text: `Approval to flagged address ${a.spender} on ${a.tokenName}`, tx: a.tx }); }
-      else if (a.unlimited && !a.spenderVerified) { s -= 15; findings.push({ sev: "high", chain: n, text: `Unlimited approval on ${a.tokenName} to unverified ${a.spender}`, tx: a.tx }); }
-      else if (a.unlimited) { s -= 4; findings.push({ sev: "medium", chain: n, text: `Unlimited approval on ${a.tokenName} to ${a.spenderName || a.spender}`, tx: a.tx }); }
+      else if (!a.unlimited) continue; // limited ERC-20 allowances and single-NFT approvals are not scored
+      else if (a.spenderVerified === false) { s -= 15; findings.push({ sev: "high", chain: n, text: `${what} to unverified ${a.spender}`, tx: a.tx }); }
+      else if (a.spenderVerified == null) { s -= 4; findings.push({ sev: "medium", chain: n, text: `${what} to ${a.spenderName || a.spender} (spender could not be checked)`, tx: a.tx }); }
+      else { s -= 4; findings.push({ sev: "medium", chain: n, text: `${what} to ${a.spenderName || a.spender}`, tx: a.tx }); }
     }
     for (const p of c.poisoning) {
       if (p.sentToFake) { s -= 30; findings.push({ sev: "high", chain: n, text: `Funds sent to look-alike ${p.fake} (mimics ${p.mimics})`, tx: p.tx }); }

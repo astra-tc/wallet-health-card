@@ -9,7 +9,7 @@ Wallets get drained by two quiet things: old **unlimited token approvals** and *
 
 ## What it does
 With one PRO API key and one `chain_id` switch, it scans Ethereum, Optimism, Arbitrum One, Gnosis and Scroll (the free-tier chains). With a paid key, `--all` or the checkbox adds Base, Polygon and ZKsync; on a free key they're skipped with a note, since Base, Polygon and ZKsync have required a paid plan since 1 Oct 2026. It produces:
-- **Open approvals**: decoded `approve` / `increaseAllowance` / `setApprovalForAll` calls (latest per token+spender, revocations removed), with the spender's name, verification status and scam tags from Blockscout. It flags unlimited approvals to unverified contracts.
+- **Open approvals**: decoded `approve` / `increaseAllowance` / `setApprovalForAll` calls (latest per token+spender, revocations removed), with the spender's name, verification status and scam tags from Blockscout. Every spender is looked up. NFT approvals are read as NFT approvals: `setApprovalForAll` is a collection-wide approval, and ERC-721 `approve(to, tokenId)` covers one token. It flags unlimited (or collection-wide) approvals to unverified contracts.
 - **Address-poisoning detection**: builds the set of addresses you really paid, then flags inbound transfers from look-alikes (same first 4 and last 4 hex). It's a critical finding if you ever sent funds to one.
 - **Spam / bait tokens**: Blockscout token reputation plus bait-name heuristics.
 - **Score and grade (A–F)**, a findings list where every item links to the transaction in **Blockscout Explorer**, plus revoke links.
