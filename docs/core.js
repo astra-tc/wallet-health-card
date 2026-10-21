@@ -130,7 +130,10 @@ export async function scanChain(bs, chainId, addr) {
   const poisoning = detectPoisoning(addr, transfers, txs);
   const tokens = (Array.isArray(balances) ? balances : balances?.items || []).filter(b => b.token?.type === "ERC-20" || !b.token?.type).map(b => ({ symbol: b.token?.symbol, name: b.token?.name, address: b.token?.address_hash || b.token?.address,
     value: Number(b.value) / 10 ** Number(b.token?.decimals || 18), usd: b.token?.exchange_rate ? Number(b.value) / 10 ** Number(b.token.decimals || 18) * Number(b.token.exchange_rate) : null,
-    reputation: b.token?.reputation || null }));
+    reputation: b.token?.reputation || null, holders: Number(b.token?.holders_count || 0),
+    mcap: Number(b.token?.circulating_market_cap || 0) }));
+  // Price sanity: ignore USD for thin/unpriced tokens (fake exchange rates inflate totals).
+  for (const t of tokens) if (t.usd != null && (t.holders < 500 || (t.mcap > 0 && t.usd > t.mcap))) { t.usdIgnored = t.usd; t.usd = null; }
   const spamTokens = tokens.filter(t => t.reputation === "scam" || (t.usd === null && /claim|visit|\.com|\.xyz|reward|airdrop/i.test(`${t.name} ${t.symbol}`)));
   return { chainId, active: true, warnings, ens: info.ens_domain_name || null, delegatedTo: info.implementations?.[0]?.name || null, isContract: info.is_contract, nativeBalance: Number(info.coin_balance || 0) / 1e18,
     nativeUsd: info.exchange_rate ? Number(info.coin_balance || 0) / 1e18 * Number(info.exchange_rate) : null,
