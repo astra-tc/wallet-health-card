@@ -1,6 +1,6 @@
-// Offline test with a mocked Blockscout PRO API. Also writes docs/sample.json for the UI "Sample" button.
-import { healthCard, ALL_CHAINS } from "../docs/core.js";
-import { writeFileSync } from "fs"; import assert from "assert";
+// Offline test with a mocked Blockscout PRO API.
+import { healthCard, ALL_CHAINS, detectPoisoning } from "../docs/core.js";
+import assert from "assert";
 const ME = "0x1111aaaa00000000000000000000000000001234", FRIEND = "0xabcd000000000000000000000000000000005678",
   FAKE = "0xabcdffffffffffffffffffffffffffffffff5678", DRAINER = "0x9999000000000000000000000000000000000bad",
   ROUTER = "0x2626664c2603336e57b271c5c0b26f421741e481", USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
@@ -38,4 +38,13 @@ assert.equal(r.chains.filter(c => c.needsPaidPlan).length, 3);
 assert.equal(r.findings.filter(f => f.sev === "info").length, 3);
 assert.ok(base.approvals.every(a => a.tokenName === "USDC"));
 assert.equal(r.grade, "B"); // 100-15-4-5-2 = 74
+// Regression: paying a look-alike must be a high finding, and the genuine contact must never be labelled the fake.
+{ const tr = (from, to, value, tx, ts) => ({ from: { hash: from }, to: { hash: to }, total: { value }, token: { symbol: "USDC" }, transaction_hash: tx, timestamp: ts });
+  const hits = detectPoisoning(ME, [
+    tr(ME, FAKE, "25000000", "0xoops", "2026-10-21T10:00:00Z"), tr(FAKE, ME, "0", "0xpoison", "2026-10-20T10:00:00Z"),
+    tr(FRIEND, ME, "10000000", "0xrefund", "2026-10-19T12:00:00Z"), tr(ME, FRIEND, "50000000", "0xreal1", "2026-10-19T10:00:00Z")],
+    [{ hash: "0xnative", from: { hash: ME }, to: { hash: FAKE }, value: "1000000000000000", timestamp: "2026-10-21T11:00:00Z" }]);
+  assert.ok(hits.every(h => h.fake === FAKE && h.mimics === FRIEND), "genuine contact must never be reported as the fake");
+  assert.deepEqual(hits.filter(h => h.sentToFake).map(h => h.tx).sort(), ["0xnative", "0xoops"]);
+  assert.deepEqual(hits.filter(h => !h.sentToFake).map(h => h.tx), ["0xpoison"]); }
 console.log("all tests passed:", r.grade, r.score, r.findings.length, "findings,", r.apiCalls, "mock API calls");

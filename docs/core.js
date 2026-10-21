@@ -59,20 +59,28 @@ const short = a => a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
 export const lookalike = (a, b) => lc(a) !== lc(b) && lc(a).slice(2, 6) === lc(b).slice(2, 6) && lc(a).slice(-4) === lc(b).slice(-4);
 
 export function detectPoisoning(addr, transfers, txs) {
-  const me = lc(addr);
-  // Real counterparties = addresses this wallet sent value/tokens to.
-  const real = new Set();
-  for (const t of transfers) if (lc(t.from?.hash) === me && lc(t.to?.hash) !== me) real.add(lc(t.to.hash));
-  for (const t of txs) if (lc(t.from?.hash) === me && t.to?.hash && Number(t.value) > 0) real.add(lc(t.to.hash));
+  const me = lc(addr); const when = x => { const t = Date.parse(x || ""); return Number.isNaN(t) ? Infinity : t; };
+  // Every address this wallet sent value/tokens to, with the time it was first paid.
+  const firstPaid = new Map();
+  const paid = (to, ts) => { to = lc(to); if (to && to !== me) firstPaid.set(to, Math.min(firstPaid.get(to) ?? Infinity, when(ts))); };
+  for (const t of transfers) if (lc(t.from?.hash) === me) paid(t.to?.hash, t.timestamp);
+  for (const t of txs) if (lc(t.from?.hash) === me && t.to?.hash && Number(t.value) > 0) paid(t.to.hash, t.timestamp);
+  // Genuine contacts: paid addresses with no look-alike paid earlier. A look-alike paid later is the
+  // poisoner's address (it only exists to mimic a contact you already had), so paying it must still be flagged.
+  const genuine = [...firstPaid].filter(([a, ts]) => ![...firstPaid].some(([b, tb]) => lookalike(a, b) && (tb < ts || (tb === ts && b < a)))).map(([a]) => a);
+  const isGenuine = new Set(genuine);
   const hits = [];
   for (const t of transfers) {
-    const other = lc(t.from?.hash) === me ? lc(t.to?.hash) : lc(t.from?.hash);
-    if (!other || real.has(other) && lc(t.from?.hash) === me) continue;
-    for (const r of real) if (lookalike(other, r)) {
-      const zero = t.total?.value === "0";
-      hits.push({ fake: other, mimics: r, tx: t.transaction_hash, token: t.token?.symbol || "?", zeroValue: zero,
-        sentToFake: lc(t.from?.hash) === me, ts: t.timestamp });
-    }
+    const sent = lc(t.from?.hash) === me; const other = sent ? lc(t.to?.hash) : lc(t.from?.hash);
+    if (!other || other === me || isGenuine.has(other)) continue;
+    const r = genuine.find(g => lookalike(other, g)); if (!r) continue;
+    hits.push({ fake: other, mimics: r, tx: t.transaction_hash, token: t.token?.symbol || "?", zeroValue: t.total?.value === "0",
+      sentToFake: sent, ts: t.timestamp });
+  }
+  for (const t of txs) { // native-coin payments to a look-alike
+    const to = lc(t.to?.hash); if (lc(t.from?.hash) !== me || !(Number(t.value) > 0) || !to || isGenuine.has(to)) continue;
+    const r = genuine.find(g => lookalike(to, g));
+    if (r) hits.push({ fake: to, mimics: r, tx: t.hash, token: "native", zeroValue: false, sentToFake: true, ts: t.timestamp });
   }
   return hits;
 }
