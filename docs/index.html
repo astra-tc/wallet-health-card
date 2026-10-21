@@ -1,17 +1,23 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="favicon.png"><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <title>Wallet Health Card · powered by Blockscout PRO API</title>
 <style>
-body{font-family:system-ui,sans-serif;background:#0d1117;color:#e6edf3;margin:0;padding:24px;max-width:960px;margin:auto}
-h1{margin:0 0 4px}small,.muted{color:#8b949e}input,button,select{font:inherit;padding:10px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#e6edf3}
-input#addr{width:420px;max-width:100%}button{background:#2f81f7;border:0;cursor:pointer}.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px;margin:16px 0}
-.grade{font-size:64px;font-weight:800}.A,.B{color:#3fb950}.C{color:#d29922}.D,.F{color:#f85149}.high{color:#f85149}.medium{color:#d29922}.low,.info{color:#8b949e}
-table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #30363d;text-align:left;font-size:14px}a{color:#58a6ff}
+body{font-family:system-ui,sans-serif;background:linear-gradient(180deg,#1a1240,#110b2e 60%,#2a0c1d) fixed;color:#fff;margin:0;padding:24px;max-width:960px;margin:auto}
+h1{margin:0 0 4px}small,.muted{color:#cfc6e8}input,button,select{font:inherit;padding:10px;border-radius:8px;border:1px solid rgba(212,175,106,.28);background:rgba(255,255,255,.05);color:#e6edf3}
+input#addr{width:420px;max-width:100%}button{background:linear-gradient(135deg,#d4af6a,#b8904a);color:#1a1240;font-weight:600;border:0;cursor:pointer}.card{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,106,.28);border-radius:12px;padding:16px;margin:16px 0}
+.grade{font-size:64px;font-weight:800}.A,.B{color:#3fb950}.C{color:#d29922}.D,.F{color:#f85149}.high{color:#f85149}.medium{color:#d29922}.low,.info{color:#cfc6e8}
+table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid rgba(212,175,106,.28);text-align:left;font-size:14px}a{color:#d4af6a}
+h1{font-family:Cinzel,Georgia,serif;color:#d4af6a}.card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(107,21,48,.2))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid rgba(212,175,106,.28);flex-wrap:wrap}
+.top a{text-decoration:none}.top .b{display:flex;align-items:center;gap:10px;color:#fff;font-family:Cinzel,serif;font-weight:700}.top img{height:34px}
+@media(max-width:600px){body{padding:14px}}
 </style></head><body>
+<header class="top"><a class="b" href="https://astratc.github.io/"><img src="crest.png" alt="Astra crest">Astra Trading Co.</a><a href="https://astratc.github.io/">← Company site</a></header>
 <h1>Wallet Health Card</h1><div class="muted">Paste any address. One Blockscout PRO API key scans Ethereum, Optimism, Arbitrum, Gnosis and Scroll for risky approvals, address-poisoning attacks and spam tokens. Read-only: no wallet connect, no signing.</div>
 <div class="card">
 <input id="addr" placeholder="0x… address"> <button id="go">Scan</button> <button id="demo" title="Load a real recorded scan">Sample scan</button> <label><input type="checkbox" id="paid"> include Base, Polygon, ZKsync (paid plan)</label><br><br>
 <input id="key" type="password" placeholder="Blockscout PRO API key (proapi_…)" size="40"> <small>Stored only in this browser. Get one free at <a href="https://dev.blockscout.com" target="_blank">dev.blockscout.com</a></small>
 </div>
 <div id="out"></div>
-<p class="muted">Data: <a href="https://docs.blockscout.com/devs/pro-api">Blockscout PRO API</a> · every finding links to the transaction in Blockscout Explorer · built by Astra Trading Co.</p>
+<p class="muted">Data: <a href="https://docs.blockscout.com/devs/pro-api">Blockscout PRO API</a> · every finding links to the transaction in Blockscout Explorer · built by <a href="https://astratc.github.io/">Astra Trading Co.</a></p>
 <script type="module" src="app.js"></script></body></html>
