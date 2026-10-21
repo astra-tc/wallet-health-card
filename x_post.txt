@@ -1,5 +1,5 @@
 Wallets get drained by forgotten unlimited approvals and address poisoning.
 
-Wallet Health Card scans any address across 5 chains in one click and grades it A–F, with every finding linked to @blockscout Explorer. Built on the Blockscout PRO API for @craftorahq.
+Wallet Health Card scans any address across 5 chains and grades it A–F, each finding linked to @blockscout Explorer. Built on the Blockscout PRO API for @craftorahq.
 
 astratc.github.io/wallet-health-card
