@@ -1,0 +1,132 @@
+{
+  "address": "0x1111aaaa00000000000000000000000000001234",
+  "generatedAt": "2026-10-21T11:03:07.971Z",
+  "chains": [
+    {
+      "chainId": 1,
+      "active": false
+    },
+    {
+      "chainId": 10,
+      "active": false
+    },
+    {
+      "chainId": 100,
+      "active": false
+    },
+    {
+      "chainId": 137,
+      "active": false
+    },
+    {
+      "chainId": 8453,
+      "active": true,
+      "isContract": false,
+      "nativeBalance": 0.02,
+      "nativeUsd": 52,
+      "txCount": 42,
+      "tokens": [
+        {
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "value": 150,
+          "usd": 150,
+          "reputation": null
+        },
+        {
+          "symbol": "CLAIM",
+          "name": "Visit claim-rewards.xyz",
+          "value": 1000,
+          "usd": null,
+          "reputation": null
+        }
+      ],
+      "spamTokens": [
+        {
+          "symbol": "CLAIM",
+          "name": "Visit claim-rewards.xyz",
+          "value": 1000,
+          "usd": null,
+          "reputation": null
+        }
+      ],
+      "approvals": [
+        {
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "tokenName": "USDC",
+          "spender": "0x2626664c2603336e57b271c5c0b26f421741e481",
+          "method": "approve",
+          "unlimited": true,
+          "revoked": false,
+          "tx": "0xappr1",
+          "ts": "2026-10-01T00:00:00Z",
+          "spenderName": "SwapRouter02",
+          "spenderVerified": true,
+          "spenderIsContract": true,
+          "spenderScam": false
+        },
+        {
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "tokenName": "USDC",
+          "spender": "0x9999000000000000000000000000000000000bad",
+          "method": "approve",
+          "unlimited": true,
+          "revoked": false,
+          "tx": "0xappr2",
+          "ts": "2026-10-18T00:00:00Z",
+          "spenderName": null,
+          "spenderVerified": false,
+          "spenderIsContract": true,
+          "spenderScam": false
+        }
+      ],
+      "poisoning": [
+        {
+          "fake": "0xabcdffffffffffffffffffffffffffffffff5678",
+          "mimics": "0xabcd000000000000000000000000000000005678",
+          "tx": "0xpoison1",
+          "token": "USDC",
+          "zeroValue": true,
+          "sentToFake": false,
+          "ts": "2026-10-20T10:00:00Z"
+        }
+      ],
+      "lastActive": "2026-10-18T00:00:00Z"
+    },
+    {
+      "chainId": 42161,
+      "active": false
+    }
+  ],
+  "score": 74,
+  "grade": "B",
+  "findings": [
+    {
+      "sev": "medium",
+      "chain": "Base",
+      "text": "Unlimited approval on USDC to SwapRouter02",
+      "tx": "0xappr1"
+    },
+    {
+      "sev": "high",
+      "chain": "Base",
+      "text": "Unlimited approval on USDC to unverified 0x9999000000000000000000000000000000000bad",
+      "tx": "0xappr2"
+    },
+    {
+      "sev": "medium",
+      "chain": "Base",
+      "text": "Address-poisoning attempt: 0xabcdffffffffffffffffffffffffffffffff5678 mimics your contact 0xabcd000000000000000000000000000000005678 (zero-value transfer)",
+      "tx": "0xpoison1"
+    },
+    {
+      "sev": "low",
+      "chain": "Base",
+      "text": "1 spam/airdrop-bait token(s) held: never interact with their sites"
+    }
+  ],
+  "apiCalls": 32,
+  "creditsRemaining": 99000,
+  "sample": true
+}
