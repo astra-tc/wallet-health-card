@@ -16,7 +16,7 @@ export const ALL_CHAINS = Object.keys(CHAINS).map(Number);
 const MAX_UINT_HEX_LEN = 60; // approvals >= ~2^240 count as "unlimited"
 
 export class Blockscout {
-  constructor({ apiKey, fetchImpl = globalThis.fetch, base = "https://api.blockscout.com", timeoutMs = 20000, maxConcurrent = 3 }) {
+  constructor({ apiKey, fetchImpl = (...a) => globalThis.fetch(...a), base = "https://api.blockscout.com", timeoutMs = 20000, maxConcurrent = 3 }) {
     this.maxConcurrent = maxConcurrent; this.active = 0; this.queue = [];
     this.apiKey = apiKey; this.fetch = fetchImpl; this.base = base; this.calls = 0; this.credits = null; this.timeoutMs = timeoutMs;
   }
@@ -33,7 +33,7 @@ export class Blockscout {
       try {
         const sig = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(this.timeoutMs) : undefined;
         r = await this.fetch(u.toString(), { headers: { Authorization: `Bearer ${this.apiKey}`, Accept: "application/json" }, signal: sig });
-      } catch (e) { last = new Error(`Blockscout timeout on ${path}`); last.status = "timeout"; break; }
+      } catch (e) { const to = e?.name === "TimeoutError" || e?.name === "AbortError"; last = new Error(to ? `Blockscout timeout on ${path}` : `Network error on ${path}: ${e?.message || e}`); last.status = to ? "timeout" : "network"; break; }
       const c = r.headers?.get?.("x-credits-remaining"); if (c) this.credits = Number(c);
       if (r.status === 429) { const reset = Number(r.headers?.get?.("x-ratelimit-reset")); await new Promise(s => setTimeout(s, Math.min(5000, reset > 0 ? reset + 100 : 1000 * (attempt + 1)))); last = null; continue; }
       if (r.status === 404) return null;
