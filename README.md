@@ -28,6 +28,9 @@ Base URL `https://api.blockscout.com/{chain_id}/api/v2`, auth via `Authorization
 
 It also limits itself to 3 requests at a time, retries 429s using `x-ratelimit-reset`, times out slow endpoints after 20s and reports partial data instead of failing, turns 402 (paid-only chain) into a skip note, uses `/tokens/{address}` for approval token symbols, 404 means "never used on this chain", and it reads `x-credits-remaining` to show credit usage.
 
+## Browser access
+`api.blockscout.com` sends no CORS `Access-Control-Allow-Origin` header, so the web app goes through `proxy/worker.js`, a tiny Cloudflare Worker at https://wallet-health-proxy.astratc.workers.dev. It only forwards GET `/{chain_id}/api/v2/...` with the user's own key, and stores and logs nothing. The CLI calls Blockscout directly.
+
 ## Run
 ```
 # Web: serve docs/ (GitHub Pages does this), open, paste a PRO key + address. "Sample" shows a recorded report without a key.

@@ -1,0 +1,4 @@
+node_modules/
+.wrangler/
+media/*.wav
+media/tmp/

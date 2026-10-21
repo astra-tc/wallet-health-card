@@ -25,6 +25,6 @@ $("go").onclick = async () => {
   if (!key) { $("out").innerHTML = `<div class="card">Add a Blockscout PRO API key first (free at dev.blockscout.com), or press Sample.</div>`; return; }
   $("out").innerHTML = `<div class="card">Scanning chains via Blockscout PRO API…</div>`;
   history.replaceState(null, "", `?address=${$("addr").value.trim()}`);
-  try { render(await healthCard(key, $("addr").value.trim(), $("paid").checked ? ALL_CHAINS : FREE_CHAINS)); } catch (e) { $("out").innerHTML = `<div class="card high">${esc(e.message)}</div>`; }
+  try { render(await healthCard(key, $("addr").value.trim(), $("paid").checked ? ALL_CHAINS : FREE_CHAINS, { base: "https://wallet-health-proxy.astratc.workers.dev" })); } catch (e) { $("out").innerHTML = `<div class="card high">${esc(e.message)}</div>`; }
 };
 $("demo").onclick = async () => render(await (await fetch("sample.json")).json());

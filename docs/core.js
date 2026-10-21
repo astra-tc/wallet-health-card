@@ -164,5 +164,6 @@ export async function healthCard(apiKey, addr, chainIds = FREE_CHAINS, opts = {}
   const bs = new Blockscout({ apiKey, ...opts });
   const chains = await Promise.all(chainIds.map(id => scanChain(bs, id, addr).catch(e => ({ chainId: id, active: false, error: e.message, needsPaidPlan: e.status === 402 }))));
   if (chains.length && chains.every(c => c.error && /key rejected/.test(c.error))) throw new Error("Blockscout API key rejected");
+  if (chains.length && chains.every(c => c.error)) throw new Error(`Could not reach Blockscout on any chain: ${chains[0].error}`);
   return { address: addr, generatedAt: new Date().toISOString(), chains, ...score(chains), apiCalls: bs.calls, creditsRemaining: bs.credits };
 }
