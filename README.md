@@ -2,7 +2,7 @@
 
 **Paste any address → get a multichain security report card in seconds, powered by the Blockscout PRO API.**
 
-Live: https://astratc.github.io/wallet-health-card/ · CLI: `node cli/health.mjs`
+Live: https://astratc.github.io/wallet-health-card/ · Demo video: https://astratc.github.io/wallet-health-card/demo.mp4 · CLI: `node cli/health.mjs`
 
 ## The problem
 Wallets get drained by two quiet things: old **unlimited token approvals** and **address poisoning** (look-alike addresses that send you zero-value transfers so you copy the wrong address from history). Checking for both means visiting several explorers, decoding approve() calls and comparing addresses by eye, on every chain you use.
