@@ -8,7 +8,7 @@ Live: https://astratc.github.io/wallet-health-card/ · CLI: `node cli/health.mjs
 Wallets get drained by two quiet things: old **unlimited token approvals** and **address poisoning** (look-alike addresses that send you zero-value transfers so you copy the wrong address from history). Checking for both means visiting several explorers, decoding approve() calls and comparing addresses by eye, on every chain you use.
 
 ## What it does
-With one PRO API key and one `chain_id` switch, it scans Ethereum, Base, Optimism, Arbitrum, Polygon and Gnosis and produces:
+With one PRO API key and one `chain_id` switch, it scans Ethereum, Optimism, Arbitrum One, Gnosis and Scroll (the free-tier chains). With a paid key, `--all` or the checkbox adds Base, Polygon and ZKsync; on a free key they're skipped with a note, since Base, Polygon and ZKsync have required a paid plan since 1 Oct 2026. It produces:
 - **Open approvals**: decoded `approve` / `increaseAllowance` / `setApprovalForAll` calls (latest per token+spender, revocations removed), with the spender's name, verification status and scam tags from Blockscout. It flags unlimited approvals to unverified contracts.
 - **Address-poisoning detection**: builds the set of addresses you really paid, then flags inbound transfers from look-alikes (same first 4 and last 4 hex). It's a critical finding if you ever sent funds to one.
 - **Spam / bait tokens**: Blockscout token reputation plus bait-name heuristics.
@@ -26,14 +26,14 @@ Base URL `https://api.blockscout.com/{chain_id}/api/v2`, auth via `Authorization
 | `/addresses/{a}/token-transfers?type=ERC-20` (paginated via `next_page_params`) | poisoning detection |
 | `/addresses/{a}/transactions` (paginated) | decoded approval history (`decoded_input`) |
 
-It also handles 429 retry with backoff, 404 means "never used on this chain", and it reads `x-credits-remaining` to show credit usage.
+It also limits itself to 3 requests at a time, retries 429s using `x-ratelimit-reset`, times out slow endpoints after 20s and reports partial data instead of failing, turns 402 (paid-only chain) into a skip note, uses `/tokens/{address}` for approval token symbols, 404 means "never used on this chain", and it reads `x-credits-remaining` to show credit usage.
 
 ## Run
 ```
 # Web: serve docs/ (GitHub Pages does this), open, paste a PRO key + address. "Sample" shows a recorded report without a key.
 python3 -m http.server -d docs 8080
 # CLI
-BLOCKSCOUT_API_KEY=proapi_xxx node cli/health.mjs 0xYourAddress           # all chains
+BLOCKSCOUT_API_KEY=proapi_xxx node cli/health.mjs 0xYourAddress           # free-tier chains (add --all for paid chains, --out r.json to save)
 BLOCKSCOUT_API_KEY=proapi_xxx node cli/health.mjs 0xYourAddress 8453,10 --json
 # Tests (offline, mocked API)
 node test/run.mjs
