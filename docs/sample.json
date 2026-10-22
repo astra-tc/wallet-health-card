@@ -1,6 +1,6 @@
 {
  "address": "0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296",
- "generatedAt": "2026-10-21T11:27:40.299Z",
+ "generatedAt": "2026-10-22T10:18:04.745Z",
  "chains": [
   {
    "chainId": 1,
@@ -10,7 +10,7 @@
    "delegatedTo": null,
    "isContract": false,
    "nativeBalance": 0.8194296886672594,
-   "nativeUsd": 2016.0838345124916,
+   "nativeUsd": 1972.2771233563399,
    "tokenTransferCount": 50015,
    "txCount": 2361,
    "tokens": [
@@ -19,30 +19,30 @@
      "name": "Liquity USD",
      "address": "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
      "value": 1856843.3555234992,
-     "usd": 1862413.8855900695,
+     "usd": 1853410.0521591362,
      "reputation": "ok",
-     "holders": 8953,
-     "mcap": 25804992.323951673
+     "holders": 8954,
+     "mcap": 25822550.552348077
     },
     {
      "symbol": "TUSD",
      "name": "TrueUSD",
      "address": "0x0000000000085d4780B73119b644AE5ecd22b376",
      "value": 137462.72,
-     "usd": 137309.99891808,
+     "usd": 137305.46264831998,
      "reputation": "ok",
-     "holders": 347014,
-     "mcap": 493941359.97005546
+     "holders": 347015,
+     "mcap": 493946730.1882709
     },
     {
      "symbol": "GROK",
      "name": "Grok",
      "address": "0x8390a1DA07E376ef7aDd4Be859BA74Fb83aA02D5",
      "value": 1000000,
-     "usd": 487.21000000000004,
+     "usd": 470.10999999999996,
      "reputation": "ok",
-     "holders": 21380,
-     "mcap": 3077823.406142169
+     "holders": 21399,
+     "mcap": 2970474.7489650603
     },
     {
      "symbol": "HMT",
@@ -51,7 +51,7 @@
      "value": 600000,
      "usd": 440.81399999999996,
      "reputation": "ok",
-     "holders": 5700,
+     "holders": 5699,
      "mcap": 734693.1847216476
     },
     {
@@ -59,9 +59,9 @@
      "name": "Maker",
      "address": "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
      "value": 0.2213702170500485,
-     "usd": 384.17251577516566,
+     "usd": 378.52757524038947,
      "reputation": "ok",
-     "holders": 78578,
+     "holders": 78567,
      "mcap": 0
     },
     {
@@ -69,119 +69,119 @@
      "name": "Deri Protocol",
      "address": "0xA487bF43cF3b10dffc97A9A744cbB7036965d3b9",
      "value": 264131,
-     "usd": 179.59851476,
+     "usd": 170.36977761999998,
      "reputation": "ok",
      "holders": 1050,
-     "mcap": 318172.45149364404
+     "mcap": 301696.66460986296
     },
     {
      "symbol": "MDT",
      "name": "Measurable Data",
      "address": "0x814e0908b12A99FeCf5BC101bB5d0b8B5cDf7d26",
      "value": 10000,
-     "usd": 68.1049,
+     "usd": 67.4007,
      "reputation": "ok",
-     "holders": 29996,
-     "mcap": 6817451.258718819
+     "holders": 30001,
+     "mcap": 6740075.441832339
     },
     {
      "symbol": "PLANET",
      "name": "Planet Token",
      "address": "0x2aD9adDD0d97EC3cDBA27F92bF6077893b76Ab0b",
      "value": 250002862.70977607,
-     "usd": 62.872469934293456,
+     "usd": 61.57470507396702,
      "reputation": "ok",
-     "holders": 25161,
-     "mcap": 251490.1163921924
+     "holders": 25166,
+     "mcap": 246289.07083807496
     },
     {
      "symbol": "PEEPO",
      "name": "Peepo",
      "address": "0xaADA04204e9e1099DaF67cf3D5D137E84E41CF41",
      "value": 18698457764.045174,
-     "usd": 46.33477833930394,
+     "usd": 46.98922436104552,
      "reputation": "ok",
-     "holders": 4065,
-     "mcap": 172048.7345414358
+     "holders": 4064,
+     "mcap": 174486.61592646455
     },
     {
      "symbol": "FOUR",
      "name": "FourCoin",
      "address": "0x244b797d622D4DEe8b188b03546ACAAbD0Cf91A0",
      "value": 13333332,
-     "usd": 16.13333172,
+     "usd": 16.53333168,
      "reputation": "ok",
-     "holders": 4907,
-     "mcap": 536637.5026154584
+     "holders": 4908,
+     "mcap": 552334.5762826509
     },
     {
      "symbol": "PIKA",
      "name": "Pikaboss",
      "address": "0xa9D54F37EbB99f83B603Cc95fc1a5f3907AacCfd",
      "value": 1000000000,
-     "usd": 15.219,
+     "usd": 14.995,
      "reputation": "ok",
      "holders": 6146,
-     "mcap": 6402372.65228059
+     "mcap": 6308121.214885288
     },
     {
      "symbol": "LUCKYSLP",
      "name": "LuckysLeprecoin",
      "address": "0x357c915D7c12dc506d13332Bb06C932aF13e99a0",
      "value": 143693204.32627,
-     "usd": 14.516318580652776,
+     "usd": 14.518330285513342,
      "reputation": "ok",
      "holders": 558,
-     "mcap": 59923.437205882474
+     "mcap": 59929.68849479194
     },
     {
      "symbol": "APED",
      "name": "Aped",
      "address": "0xE0151763455A8a021e64880C238ba1cff3787fF0",
      "value": 50.00028289,
-     "usd": 4.898527714733301,
+     "usd": 4.796677138486371,
      "reputation": "ok",
      "holders": 2629,
-     "mcap": 97969.5245415498
+     "mcap": 95931.14159059814
     },
     {
      "symbol": "XAUT",
      "name": "Tether Gold",
      "address": "0x68749665FF8D2d112Fa859AA293F07A622782F38",
      "value": 0.000959,
-     "usd": 3.9493825699999996,
+     "usd": 3.91742869,
      "reputation": "ok",
-     "holders": 62646,
-     "mcap": 3331473374.903744
+     "holders": 62736,
+     "mcap": 3304000117.969686
     },
     {
      "symbol": "HT",
      "name": "Huobi",
      "address": "0x6f259637dcD74C767781E37Bc6133cd6A68aa161",
      "value": 22.21304885,
-     "usd": 3.05556036065945,
+     "usd": 2.9976953684052,
      "reputation": "ok",
      "holders": 56489,
-     "mcap": 15048250.922423316
+     "mcap": 14762887.446770117
     },
     {
      "symbol": "0XBTC",
      "name": "0xBitcoin",
      "address": "0xB6eD7644C69416d67B522e20bC294A9a9B405B31",
      "value": 50,
-     "usd": 1.2882715,
+     "usd": 1.285247,
      "reputation": "ok",
      "holders": 8346,
-     "mcap": 279212.58342189464
+     "mcap": 278545.70000036707
     },
     {
      "symbol": "JUSTICE",
      "name": "AssangeDAO",
      "address": "0x59d1e836F7b7210A978b25a855085cc46fd090B5",
      "value": 8888,
-     "usd": 0.51443744,
+     "usd": 0.5103489600000001,
      "reputation": "ok",
-     "holders": 5525,
+     "holders": 5523,
      "mcap": 0
     },
     {
@@ -189,9 +189,9 @@
      "name": "TitanX",
      "address": "0xF19308F923582A6f7c465e5CE7a9Dc1BEC6665B1",
      "value": 8888888,
-     "usd": 0.45915550964,
+     "usd": 0.443813288952,
      "reputation": "ok",
-     "holders": 19877,
+     "holders": 19882,
      "mcap": 0
     },
     {
@@ -220,90 +220,90 @@
      "name": "BOB Token",
      "address": "0x7D8146cf21e8D7cbe46054e01588207b51198729",
      "value": 280485.102529895,
-     "usd": 0.21098650382503764,
+     "usd": 0.20625584208576841,
      "reputation": "ok",
-     "holders": 19385,
-     "mcap": 519030.2140112721
-    },
-    {
-     "symbol": "ANVL",
-     "name": "Anvil",
-     "address": "0xAEEAa594e7dc112D67b8547fe9767a02c15B5597",
-     "value": 92,
-     "usd": 0.18222164,
-     "reputation": "ok",
-     "holders": 4837,
-     "mcap": 174458417.73667562
+     "holders": 19389,
+     "mcap": 507383.2092721231
     },
     {
      "symbol": "DODO",
      "name": "DODO",
      "address": "0x43Dfc4159D86F3A37A5A4B3D4580b888ad7d4DDd",
      "value": 8,
-     "usd": 0.16988808,
+     "usd": 0.16909168,
      "reputation": "ok",
-     "holders": 16646,
-     "mcap": 21223120.60432062
+     "holders": 16674,
+     "mcap": 21128372.437170237
+    },
+    {
+     "symbol": "ANVL",
+     "name": "Anvil",
+     "address": "0xAEEAa594e7dc112D67b8547fe9767a02c15B5597",
+     "value": 92,
+     "usd": 0.15487648,
+     "reputation": "ok",
+     "holders": 4900,
+     "mcap": 148318347.91760096
     },
     {
      "symbol": "BOBO",
      "name": "Bobo",
      "address": "0x5888641e3e6cBeA6D84Ba81EDb217bD691d3bE38",
      "value": 400000000,
-     "usd": 0.1501604,
+     "usd": 0.1529036,
      "reputation": "ok",
      "holders": 4679,
-     "mcap": 157927.39568918248
+     "mcap": 160812.43677213855
     },
     {
      "symbol": "STARL",
      "name": "StarLink",
      "address": "0x8E6cd950Ad6ba651F6DD608Dc70e5886B1AA6B24",
      "value": 888888,
-     "usd": 0.12543009679199998,
+     "usd": 0.12281409940799999,
      "reputation": "ok",
-     "holders": 39770,
-     "mcap": 1408152.9395464698
+     "holders": 39771,
+     "mcap": 1378935.0829253928
     },
     {
      "symbol": "STG",
      "name": "Stargate Finance",
      "address": "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",
      "value": 0.7,
-     "usd": 0.1239665,
+     "usd": 0.1156701,
      "reputation": "ok",
-     "holders": 36623,
-     "mcap": 16585421.69878058
+     "holders": 36609,
+     "mcap": 15773408.872120311
     },
     {
      "symbol": "MEDXT",
      "name": "MEDXT",
      "address": "0x755d61b9aCBC7FCc935E280291cD86cC1913af93",
      "value": 100,
-     "usd": 0.064881,
+     "usd": 0.063488,
      "reputation": "ok",
      "holders": 1548,
-     "mcap": 13476586.221167572
+     "mcap": 13187153.32366373
     },
     {
      "symbol": "ANY",
      "name": "Anyswap",
      "address": "0xf99d58e463A2E07e5692127302C20A191861b4D6",
      "value": 0.04994316626913397,
-     "usd": 0.03137264892578308,
+     "usd": 0.03097180507330701,
      "reputation": "ok",
      "holders": 1948,
-     "mcap": 8282594.915531955
+     "mcap": 8172880.839020882
     },
     {
      "symbol": "A7A5",
      "name": "A7A5",
      "address": "0x6fA0BE17e4beA2fCfA22ef89BF8ac9aab0AB0fc9",
-     "value": 2.266051,
-     "usd": 0.026842393817950002,
+     "value": 2.266859,
+     "usd": 0.02752746625496,
      "reputation": "ok",
-     "holders": 17567,
-     "mcap": 464836505.669202
+     "holders": 17571,
+     "mcap": 476518618.8949349
     },
     {
      "symbol": "DCOIN",
@@ -320,49 +320,49 @@
      "name": "Shanghai Inu",
      "address": "0xee772CEc929D8430b4Fa7a01cD7FbD159a68Aa83",
      "value": 100000000,
-     "usd": 0.0061204,
+     "usd": 0.006263100000000001,
      "reputation": "ok",
      "holders": 3454,
-     "mcap": 61204.334046268246
+     "mcap": 62630.6411769938
     },
     {
      "symbol": "DAI",
      "name": "Dai",
      "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
      "value": 0.0023114344109994,
-     "usd": 0.0023114344109994,
+     "usd": 0.002310544508751165,
      "reputation": "ok",
-     "holders": 766337,
-     "mcap": 4554652313.426285
+     "holders": 766680,
+     "mcap": 4562995091.936451
     },
     {
      "symbol": "KIBSHI",
      "name": "KiboShib",
      "address": "0x02e7F808990638E9e67E1f00313037EDe2362361",
      "value": 888,
-     "usd": 0.00153624,
+     "usd": 0.00157176,
      "reputation": "ok",
-     "holders": 6848,
-     "mcap": 1734282.1938689316
+     "holders": 6851,
+     "mcap": 1766006.3019661405
     },
     {
      "symbol": "TURBO",
      "name": "Turbo",
      "address": "0xA35923162C49cF95e6BF26623385eb431ad920D3",
      "value": 1,
-     "usd": 0.00087481,
+     "usd": 0.00085099,
      "reputation": "ok",
-     "holders": 70803,
-     "mcap": 60354509.31665053
+     "holders": 70831,
+     "mcap": 58693489.69988768
     },
     {
      "symbol": "HEX",
      "name": "HEX",
      "address": "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39",
      "value": 1,
-     "usd": 0.00068547,
+     "usd": 0.00064722,
      "reputation": "ok",
-     "holders": 8986590,
+     "holders": 8986595,
      "mcap": 0
     },
     {
@@ -370,46 +370,46 @@
      "name": "BitTorrent",
      "address": "0xC669928185DbCE49d2230CC9B0979BE6DC797957",
      "value": 755.0056314180418,
-     "usd": 0.00029005957348944615,
+     "usd": 0.0002843615459891342,
      "reputation": "ok",
-     "holders": 20998,
-     "mcap": 370842924.697076
+     "holders": 21006,
+     "mcap": 363624377.3091154
     },
     {
      "symbol": "WETH",
      "name": "WETH",
      "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
      "value": 1e-07,
-     "usd": 0.00024493899999999995,
+     "usd": 0.00024003699999999997,
      "reputation": "ok",
-     "holders": 3358031,
-     "mcap": 5388427223.999087
+     "holders": 3358334,
+     "mcap": 5324236280.151831
     },
     {
      "symbol": "RIBBIT",
      "name": "Ribbit Meme",
      "address": "0xb794Ad95317f75c44090f64955954C3849315fFe",
      "value": 99999.99999999999,
-     "usd": 3.2295599999999996e-05,
+     "usd": 3.1430099999999996e-05,
      "reputation": "ok",
      "holders": 6302,
-     "mcap": 135865.3787439768
+     "mcap": 132238.0530362337
     },
     {
      "symbol": "LADYS",
      "name": "Milady Meme Coin",
      "address": "0x12970E6868f88f6557B76120662c1B3E50A646bf",
      "value": 1,
-     "usd": 6.163e-09,
+     "usd": 6.041e-09,
      "reputation": "ok",
-     "holders": 28987,
-     "mcap": 5475179.331921514
+     "holders": 29028,
+     "mcap": 5362517.974072772
     },
     {
      "symbol": "ERC20",
      "name": "Token",
      "address": "0x69d3F385738703Da95A48DfcfdCa610500f2eCbb",
-     "value": 6.937769260023878e+54,
+     "value": 2.8322078597214872e+57,
      "usd": null,
      "reputation": "ok",
      "holders": 1922,
@@ -992,7 +992,7 @@
      "value": 547293817133.2763,
      "usd": null,
      "reputation": "ok",
-     "holders": 1594,
+     "holders": 1595,
      "mcap": 0
     },
     {
@@ -1472,7 +1472,7 @@
      "value": 250000000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 427,
+     "holders": 431,
      "mcap": 0
     },
     {
@@ -2002,7 +2002,7 @@
      "value": 250000000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 517,
+     "holders": 521,
      "mcap": 0
     },
     {
@@ -3682,7 +3682,7 @@
      "value": 2000000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 429,
+     "holders": 430,
      "mcap": 0
     },
     {
@@ -4372,7 +4372,7 @@
      "value": 741222646.0237976,
      "usd": null,
      "reputation": "ok",
-     "holders": 422,
+     "holders": 426,
      "mcap": 0
     },
     {
@@ -4752,7 +4752,7 @@
      "value": 741222646.0237976,
      "usd": null,
      "reputation": "ok",
-     "holders": 432,
+     "holders": 436,
      "mcap": 0
     },
     {
@@ -4972,7 +4972,7 @@
      "value": 741222646.0237976,
      "usd": null,
      "reputation": "ok",
-     "holders": 399,
+     "holders": 403,
      "mcap": 0
     },
     {
@@ -7982,7 +7982,7 @@
      "value": 23978312.856355112,
      "usd": null,
      "reputation": "ok",
-     "holders": 705,
+     "holders": 709,
      "mcap": 0
     },
     {
@@ -8232,7 +8232,7 @@
      "value": 9698231.77369189,
      "usd": null,
      "reputation": "ok",
-     "holders": 42321,
+     "holders": 42320,
      "mcap": 0
     },
     {
@@ -8412,7 +8412,7 @@
      "value": 3000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 6515,
+     "holders": 6516,
      "mcap": 0
     },
     {
@@ -8812,7 +8812,7 @@
      "value": 199999.99999999997,
      "usd": null,
      "reputation": "ok",
-     "holders": 4963,
+     "holders": 4962,
      "mcap": 0
     },
     {
@@ -9332,7 +9332,7 @@
      "value": 13140.844823772228,
      "usd": null,
      "reputation": "ok",
-     "holders": 721,
+     "holders": 720,
      "mcap": 0
     },
     {
@@ -9592,7 +9592,7 @@
      "value": 1754.3859649122808,
      "usd": null,
      "reputation": "ok",
-     "holders": 20146,
+     "holders": 20147,
      "mcap": 0
     },
     {
@@ -9662,7 +9662,7 @@
      "value": 1437,
      "usd": null,
      "reputation": "ok",
-     "holders": 22826,
+     "holders": 22825,
      "mcap": 0
     },
     {
@@ -9752,7 +9752,7 @@
      "value": 1000,
      "usd": null,
      "reputation": "ok",
-     "holders": 40659,
+     "holders": 40652,
      "mcap": 0
     },
     {
@@ -10192,7 +10192,7 @@
      "value": 9,
      "usd": null,
      "reputation": "ok",
-     "holders": 5941,
+     "holders": 5942,
      "mcap": 0
     },
     {
@@ -10222,7 +10222,7 @@
      "value": 8,
      "usd": null,
      "reputation": "ok",
-     "holders": 96875,
+     "holders": 96880,
      "mcap": 0
     },
     {
@@ -10332,7 +10332,7 @@
      "value": 4,
      "usd": null,
      "reputation": "ok",
-     "holders": 279514,
+     "holders": 279515,
      "mcap": 0
     },
     {
@@ -10552,7 +10552,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 7591,
+     "holders": 8246,
      "mcap": 0
     },
     {
@@ -12662,7 +12662,7 @@
      "value": 0.001,
      "usd": null,
      "reputation": "ok",
-     "holders": 1031,
+     "holders": 1032,
      "mcap": 0
     },
     {
@@ -13252,7 +13252,7 @@
      "value": 102.900548848,
      "usd": null,
      "reputation": "ok",
-     "holders": 202540,
+     "holders": 202541,
      "mcap": 0
     },
     {
@@ -13312,7 +13312,7 @@
      "value": 4,
      "usd": null,
      "reputation": "ok",
-     "holders": 901,
+     "holders": 900,
      "mcap": 0
     },
     {
@@ -13402,7 +13402,7 @@
      "value": 1.952755,
      "usd": null,
      "reputation": "ok",
-     "holders": 94521,
+     "holders": 94537,
      "mcap": 0
     },
     {
@@ -13442,7 +13442,7 @@
      "value": 1415,
      "usd": null,
      "reputation": "ok",
-     "holders": 14755,
+     "holders": 14756,
      "mcap": 0
     },
     {
@@ -13482,7 +13482,7 @@
      "value": 777,
      "usd": null,
      "reputation": "ok",
-     "holders": 6624,
+     "holders": 6623,
      "mcap": 0
     },
     {
@@ -13564,7 +13564,7 @@
      "value": 1415,
      "usd": null,
      "reputation": "ok",
-     "holders": 14755,
+     "holders": 14756,
      "mcap": 0
     },
     {
@@ -13574,7 +13574,7 @@
      "value": 777,
      "usd": null,
      "reputation": "ok",
-     "holders": 6624,
+     "holders": 6623,
      "mcap": 0
     }
    ],
@@ -13582,13 +13582,15 @@
     {
      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
      "tokenName": "USDC",
-     "spender": "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": false,
-     "revoked": false,
      "tx": "0x721cf4baaae9d11ad2b2660a3de663cf33242e856bea0d1e43dd4bdd7a7b1873",
      "ts": "2024-10-21T07:27:47.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+     "unlimited": false,
+     "revoked": false,
      "spenderName": "InitializableImmutableAdminUpgradeabilityProxy",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -13597,13 +13599,15 @@
     {
      "token": "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
      "tokenName": "LUSD",
-     "spender": "0x45312ea0eff7e09c83cbe249fa1d7598c4c8cd4e",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": true,
-     "revoked": false,
      "tx": "0x895021011c2cb54d175f4ca06f549de67f3623e955e7e5914b7aca50c43688d6",
      "ts": "2026-04-01T10:49:35.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0x45312ea0eff7e09c83cbe249fa1d7598c4c8cd4e",
+     "unlimited": true,
+     "revoked": false,
      "spenderName": "CurveRouterv1.2",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -13611,6 +13615,105 @@
     }
    ],
    "poisoning": [
+    {
+     "fake": "0xaa3ce398e237f979780568a62398b0ca5c505691",
+     "mimics": "0xaa3c7122776b6b3701d8861bd12320da528a5691",
+     "tx": "0x2768425673cf78dabf6ccd8d3be56121df2c235876701e820e08cb0f386397e6",
+     "token": "U\u0301\u0405D\u0421",
+     "zeroValue": false,
+     "sentToFake": true,
+     "ts": "2026-04-06T06:18:11.000000Z"
+    },
+    {
+     "fake": "0xb85454f8f1bffb7f415660d3fd32d275dc2af32a",
+     "mimics": "0xb85442bbebee33d40e20eaf451b0edafa33df32a",
+     "tx": "0x4a892166ba8d421bca75775c111342d822ffdb8e65dad057c01b76ccf2d4656c",
+     "token": "U\u0301\u0405D\u0422",
+     "zeroValue": false,
+     "sentToFake": true,
+     "ts": "2026-04-06T04:19:35.000000Z"
+    },
+    {
+     "fake": "0xaa3ca4b49df4193baf561da1a3b9eb07d87d5691",
+     "mimics": "0xaa3c7122776b6b3701d8861bd12320da528a5691",
+     "tx": "0x0070f0afe3b663b5a96b432ffb5e56c7a4a5506f926e875867cc314b1e0534f3",
+     "token": "USDC",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T23:57:47.000000Z"
+    },
+    {
+     "fake": "0xaa3c939c47480c9ea3a2b83ece3be41e3d2d5691",
+     "mimics": "0xaa3c7122776b6b3701d8861bd12320da528a5691",
+     "tx": "0xe17d90e074c2b6ac5e7aff2159a75322507c9aad28e03ba2eba6e54d607576c3",
+     "token": "USDC",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T23:54:47.000000Z"
+    },
+    {
+     "fake": "0xb8540e66ccd18dba1f09a90b065749bcc9a6f32a",
+     "mimics": "0xb85442bbebee33d40e20eaf451b0edafa33df32a",
+     "tx": "0x02c09e0d15eaf2de4e004d00690f1e95a8b206f563bdb004ec081ab92c8dc8b8",
+     "token": "USDT",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T23:50:35.000000Z"
+    },
+    {
+     "fake": "0xb854acc1ccc07881b7942d64bcd16b3ffb41f32a",
+     "mimics": "0xb85442bbebee33d40e20eaf451b0edafa33df32a",
+     "tx": "0xf2f49cf3d7f515656b81e0dc76e4fccef0bda3113c8853fba43fe44dd1580b5a",
+     "token": "USDT",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T23:48:47.000000Z"
+    },
+    {
+     "fake": "0x3d9a08169b93edc016fc451059d4ecc9e6ff6622",
+     "mimics": "0x3d9a66df85d913b85d57b91229b025d6e4736622",
+     "tx": "0xbf69d1f9cc28cfb49e5f995a5d49ba2e1f9f7201fc0c3903d3cef19729805270",
+     "token": "LQTY",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T11:10:35.000000Z"
+    },
+    {
+     "fake": "0x3d9a08169b93edc016fc451059d4ecc9e6ff6622",
+     "mimics": "0x3d9a66df85d913b85d57b91229b025d6e4736622",
+     "tx": "0x1d869d4227bbe264220a1126f0afaa95b91a4c3eb8d15b5be1602ec2a5ccf7fe",
+     "token": "LQTY",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T11:04:59.000000Z"
+    },
+    {
+     "fake": "0x3d9a08169b93edc016fc451059d4ecc9e6ff6622",
+     "mimics": "0x3d9a66df85d913b85d57b91229b025d6e4736622",
+     "tx": "0x83774c1b260fae516225580a84339c9f71716db075c56dea4e7cd11dbeb6018c",
+     "token": "LQTY",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T10:58:59.000000Z"
+    },
+    {
+     "fake": "0x3d9a2afd0b92932e55e4c8e07b4fd723b21d6622",
+     "mimics": "0x3d9a66df85d913b85d57b91229b025d6e4736622",
+     "tx": "0x59abbd0899c13f055be0a5d67e1084fed8a19eccf984ffc28cb0a9144fb2514e",
+     "token": "LQTY",
+     "zeroValue": true,
+     "sentToFake": true,
+     "ts": "2026-04-01T10:57:11.000000Z"
+    },
+    {
+     "fake": "0x16f5f530d8c762ed5953921d426110913dcb0ae7",
+     "mimics": "0x16f509bff3ca9f4f3f036c8aca40c47e2e250ae7",
+     "tx": "0xb5492f52e2e51567635e7adedcf7df71cc173319d7c500fa5a720f13c284f5c5",
+     "token": "E\ua4d4H",
+     "zeroValue": false,
+     "sentToFake": true,
+     "ts": "2026-04-01T10:42:23.000000Z"
+    },
     {
      "fake": "0x5dc112b8b107fd617bb23c0bd0bf7e7a3b0ee4e8",
      "mimics": "0x5dc19f77ab40784917c5b45d9fd97e9fde18e4e8",
@@ -13640,7 +13743,7 @@
    "delegatedTo": null,
    "isContract": false,
    "nativeBalance": 1.001e-05,
-   "nativeUsd": 0.024640115500000004,
+   "nativeUsd": 0.024088864800000002,
    "tokenTransferCount": 11467,
    "txCount": 5,
    "tokens": [
@@ -13649,29 +13752,29 @@
      "name": "Optimism",
      "address": "0x4200000000000000000000000000000000000042",
      "value": 681.2600717370867,
-     "usd": 89.10472982278051,
+     "usd": 83.07421566776382,
      "reputation": "ok",
-     "holders": 1376871,
-     "mcap": 300577219.9180616
+     "holders": 1376847,
+     "mcap": 280306979.13773036
     },
     {
      "symbol": "USDC",
      "name": "USD Coin",
      "address": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
      "value": 6,
-     "usd": 5.996526,
+     "usd": 5.998182,
      "reputation": "ok",
-     "holders": 881509,
-     "mcap": 19921828.48486231
+     "holders": 881496,
+     "mcap": 19927474.363379814
     },
     {
      "symbol": "USDT",
      "name": "Bridged USDT",
      "address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
      "value": 5,
-     "usd": 4.995025,
+     "usd": 4.996074999999999,
      "reputation": "ok",
-     "holders": 999376,
+     "holders": 999349,
      "mcap": 0
     },
     {
@@ -13679,10 +13782,10 @@
      "name": "Glo Dollar",
      "address": "0x4F604735c1cF31399C6E711D5962b2B3E0225AD3",
      "value": 0.22,
-     "usd": 0.21950302,
+     "usd": 0.21989638,
      "reputation": "ok",
      "holders": 5321,
-     "mcap": 1874389.6649894349
+     "mcap": 2392646.267983315
     },
     {
      "symbol": "LARRY",
@@ -13691,7 +13794,7 @@
      "value": 1000000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 891352,
+     "holders": 891340,
      "mcap": 0
     },
     {
@@ -13711,7 +13814,7 @@
      "value": 400,
      "usd": null,
      "reputation": "ok",
-     "holders": 23850,
+     "holders": 23851,
      "mcap": 0
     },
     {
@@ -13721,7 +13824,7 @@
      "value": 18.95454301,
      "usd": null,
      "reputation": "ok",
-     "holders": 278559,
+     "holders": 278557,
      "mcap": 0
     },
     {
@@ -13751,7 +13854,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 274928,
+     "holders": 274927,
      "mcap": 0
     }
    ],
@@ -13763,7 +13866,7 @@
      "value": 400,
      "usd": null,
      "reputation": "ok",
-     "holders": 23850,
+     "holders": 23851,
      "mcap": 0
     },
     {
@@ -13810,7 +13913,7 @@
      "value": 600000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 567097,
+     "holders": 567104,
      "mcap": 0
     },
     {
@@ -13820,7 +13923,7 @@
      "value": 5000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 3229291,
+     "holders": 3229309,
      "mcap": 0
     },
     {
@@ -13860,7 +13963,7 @@
      "value": 2100,
      "usd": null,
      "reputation": "ok",
-     "holders": 302043,
+     "holders": 302044,
      "mcap": 0
     },
     {
@@ -13870,7 +13973,7 @@
      "value": 1000,
      "usd": null,
      "reputation": "ok",
-     "holders": 5985960,
+     "holders": 5985980,
      "mcap": 0
     },
     {
@@ -13880,7 +13983,7 @@
      "value": 290,
      "usd": null,
      "reputation": "ok",
-     "holders": 6059074,
+     "holders": 6059076,
      "mcap": 0
     },
     {
@@ -13910,7 +14013,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 30002,
+     "holders": 30003,
      "mcap": 0
     },
     {
@@ -13950,7 +14053,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 30007,
+     "holders": 30008,
      "mcap": 0
     },
     {
@@ -14040,7 +14143,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90006,
+     "holders": 90007,
      "mcap": 0
     },
     {
@@ -14050,7 +14153,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90746,
+     "holders": 90748,
      "mcap": 0
     },
     {
@@ -14060,7 +14163,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90980,
+     "holders": 90981,
      "mcap": 0
     },
     {
@@ -14140,7 +14243,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 100853,
+     "holders": 100854,
      "mcap": 0
     },
     {
@@ -14150,7 +14253,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 100515,
+     "holders": 100516,
      "mcap": 0
     },
     {
@@ -14190,7 +14293,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 101123,
+     "holders": 101124,
      "mcap": 0
     },
     {
@@ -14210,7 +14313,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 905632,
+     "holders": 905631,
      "mcap": 0
     }
    ],
@@ -14242,7 +14345,7 @@
      "value": 2100,
      "usd": null,
      "reputation": "ok",
-     "holders": 302043,
+     "holders": 302044,
      "mcap": 0
     },
     {
@@ -14252,7 +14355,7 @@
      "value": 1000,
      "usd": null,
      "reputation": "ok",
-     "holders": 5985960,
+     "holders": 5985980,
      "mcap": 0
     },
     {
@@ -14272,7 +14375,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 30002,
+     "holders": 30003,
      "mcap": 0
     },
     {
@@ -14312,7 +14415,7 @@
      "value": 1,
      "usd": null,
      "reputation": "ok",
-     "holders": 30007,
+     "holders": 30008,
      "mcap": 0
     },
     {
@@ -14362,7 +14465,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90006,
+     "holders": 90007,
      "mcap": 0
     },
     {
@@ -14372,7 +14475,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90746,
+     "holders": 90748,
      "mcap": 0
     },
     {
@@ -14382,7 +14485,7 @@
      "value": 3e-15,
      "usd": null,
      "reputation": "ok",
-     "holders": 90980,
+     "holders": 90981,
      "mcap": 0
     },
     {
@@ -14462,7 +14565,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 100853,
+     "holders": 100854,
      "mcap": 0
     },
     {
@@ -14472,7 +14575,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 100515,
+     "holders": 100516,
      "mcap": 0
     },
     {
@@ -14512,7 +14615,7 @@
      "value": 1e-18,
      "usd": null,
      "reputation": "ok",
-     "holders": 101123,
+     "holders": 101124,
      "mcap": 0
     },
     {
@@ -14538,7 +14641,7 @@
    "delegatedTo": null,
    "isContract": false,
    "nativeBalance": 0.9858461822042085,
-   "nativeUsd": 2425.5266543861244,
+   "nativeUsd": 2373.957040595022,
    "tokenTransferCount": 270,
    "txCount": 18,
    "tokens": [
@@ -14547,20 +14650,20 @@
      "name": "USDT0",
      "address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
      "value": 9.286964,
-     "usd": 9.276098252119999,
+     "usd": 9.276943365844,
      "reputation": "ok",
-     "holders": 4396037,
-     "mcap": 3119982850.3152285
+     "holders": 4398143,
+     "mcap": 3199729251.0857477
     },
     {
      "symbol": "USDC.E",
      "name": "Arbitrum Bridged USDC (Arbitrum)",
      "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
      "value": 5,
-     "usd": 4.99718,
+     "usd": 4.9982500000000005,
      "reputation": "ok",
-     "holders": 604566,
-     "mcap": 47814756.468498334
+     "holders": 604493,
+     "mcap": 47830131.1335668
     },
     {
      "symbol": "AIDOGE",
@@ -14569,18 +14672,18 @@
      "value": 1334567890,
      "usd": 0.011557357927400001,
      "reputation": "ok",
-     "holders": 273790,
-     "mcap": 1618787.312747544
+     "holders": 273802,
+     "mcap": 1618654.5116799762
     },
     {
      "symbol": "USDC",
      "name": "USDC",
      "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
      "value": 0.000117,
-     "usd": 0.000116934012,
+     "usd": 0.00011695905,
      "reputation": "ok",
-     "holders": 5967888,
-     "mcap": 72069486932.89842
+     "holders": 5976122,
+     "mcap": 72508890966.82336
     },
     {
      "symbol": "POGAI",
@@ -14589,7 +14692,7 @@
      "value": 520.1,
      "usd": 9.57426085e-05,
      "reputation": "ok",
-     "holders": 36052,
+     "holders": 36051,
      "mcap": 0
     },
     {
@@ -14597,10 +14700,10 @@
      "name": "ZenPandaCoin",
      "address": "0xeE0b14e8fC86691Cf6eE42B9954985B4cF968534",
      "value": 10,
-     "usd": 6.807e-10,
+     "usd": 6.819999999999999e-10,
      "reputation": "ok",
      "holders": 4509,
-     "mcap": 60506.69647427663
+     "mcap": 60623.6205342518
     },
     {
      "symbol": "YOYO",
@@ -14639,7 +14742,7 @@
      "value": 319423037164.8346,
      "usd": null,
      "reputation": "ok",
-     "holders": 24105,
+     "holders": 24100,
      "mcap": 0
     },
     {
@@ -14869,7 +14972,7 @@
      "value": 1000000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 246632,
+     "holders": 246622,
      "mcap": 0
     },
     {
@@ -15049,7 +15152,7 @@
      "value": 1000000,
      "usd": null,
      "reputation": "ok",
-     "holders": 14173,
+     "holders": 14171,
      "mcap": 0
     },
     {
@@ -15079,7 +15182,7 @@
      "value": 443578.6904788362,
      "usd": null,
      "reputation": "ok",
-     "holders": 37819,
+     "holders": 37818,
      "mcap": 0
     },
     {
@@ -15119,7 +15222,7 @@
      "value": 82500.00000000001,
      "usd": null,
      "reputation": "ok",
-     "holders": 21496,
+     "holders": 21495,
      "mcap": 0
     },
     {
@@ -15489,7 +15592,7 @@
      "value": 0.0001285713,
      "usd": null,
      "reputation": "ok",
-     "holders": 468,
+     "holders": 470,
      "mcap": 0
     },
     {
@@ -15581,7 +15684,7 @@
      "value": 82500.00000000001,
      "usd": null,
      "reputation": "ok",
-     "holders": 21496,
+     "holders": 21495,
      "mcap": 0
     },
     {
@@ -15619,13 +15722,15 @@
     {
      "token": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
      "tokenName": "USDC.E",
-     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": true,
-     "revoked": false,
      "tx": "0x669b37d34c272faa4ca0f6659029b14d4c2e2eb267a1d79b82c5e354942d5117",
      "ts": "2022-07-20T15:02:39.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "unlimited": true,
+     "revoked": false,
      "spenderName": "NonfungiblePositionManager",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -15634,13 +15739,15 @@
     {
      "token": "0x680447595e8b7b3Aa1B43beB9f6098C79ac2Ab3f",
      "tokenName": "USDD",
-     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": true,
-     "revoked": false,
      "tx": "0x63387a5282b59d687053482b306405f3f80c6443d54084dade300f1beb730f07",
      "ts": "2022-07-20T15:03:45.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "unlimited": true,
+     "revoked": false,
      "spenderName": "NonfungiblePositionManager",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -15649,13 +15756,15 @@
     {
      "token": "0x4D15a3A2286D883AF0AA1B3f21367843FAc63E07",
      "tokenName": "TUSD",
-     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": true,
-     "revoked": false,
      "tx": "0x1a873f7604ead7e60fcf2bec59de63c447f92cc316cd3aee21ce381cbde1553a",
      "ts": "2022-07-20T15:19:09.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0xc36442b4a4522e871399cd717abdd847ab11fe88",
+     "unlimited": true,
+     "revoked": false,
      "spenderName": "NonfungiblePositionManager",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -15664,13 +15773,15 @@
     {
      "token": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
      "tokenName": "USDC.E",
-     "spender": "0x53bf833a5d6c4dda888f69c22c88c9f356a41614",
+     "tokenType": "ERC-20",
      "method": "approve",
-     "unlimited": true,
-     "revoked": false,
      "tx": "0xb0574efa1c8f8a5c50465abae11ccdd91420480e0e6b7eb9626f6dfaad6d44b0",
      "ts": "2022-12-11T17:23:08.000000Z",
-     "tokenType": "ERC-20",
+     "nft": false,
+     "scope": "amount",
+     "spender": "0x53bf833a5d6c4dda888f69c22c88c9f356a41614",
+     "unlimited": true,
+     "revoked": false,
      "spenderName": "Router",
      "spenderVerified": true,
      "spenderIsContract": true,
@@ -15688,7 +15799,7 @@
    "delegatedTo": null,
    "isContract": false,
    "nativeBalance": 0.000168741,
-   "nativeUsd": 0.41537790783,
+   "nativeUsd": 0.40607184168,
    "tokenTransferCount": 5,
    "txCount": 9,
    "tokens": [
@@ -15739,14 +15850,80 @@
    "lastActive": "2025-01-12T15:41:25.000000Z"
   }
  ],
- "score": 36,
- "grade": "D",
+ "score": 0,
+ "grade": "F",
  "findings": [
   {
    "sev": "medium",
    "chain": "Ethereum",
    "text": "Unlimited approval on LUSD to CurveRouterv1.2",
    "tx": "0x895021011c2cb54d175f4ca06f549de67f3623e955e7e5914b7aca50c43688d6"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xaa3ce398e237f979780568a62398b0ca5c505691 (mimics 0xaa3c7122776b6b3701d8861bd12320da528a5691)",
+   "tx": "0x2768425673cf78dabf6ccd8d3be56121df2c235876701e820e08cb0f386397e6"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xb85454f8f1bffb7f415660d3fd32d275dc2af32a (mimics 0xb85442bbebee33d40e20eaf451b0edafa33df32a)",
+   "tx": "0x4a892166ba8d421bca75775c111342d822ffdb8e65dad057c01b76ccf2d4656c"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xaa3ca4b49df4193baf561da1a3b9eb07d87d5691 (mimics 0xaa3c7122776b6b3701d8861bd12320da528a5691)",
+   "tx": "0x0070f0afe3b663b5a96b432ffb5e56c7a4a5506f926e875867cc314b1e0534f3"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xaa3c939c47480c9ea3a2b83ece3be41e3d2d5691 (mimics 0xaa3c7122776b6b3701d8861bd12320da528a5691)",
+   "tx": "0xe17d90e074c2b6ac5e7aff2159a75322507c9aad28e03ba2eba6e54d607576c3"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xb8540e66ccd18dba1f09a90b065749bcc9a6f32a (mimics 0xb85442bbebee33d40e20eaf451b0edafa33df32a)",
+   "tx": "0x02c09e0d15eaf2de4e004d00690f1e95a8b206f563bdb004ec081ab92c8dc8b8"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0xb854acc1ccc07881b7942d64bcd16b3ffb41f32a (mimics 0xb85442bbebee33d40e20eaf451b0edafa33df32a)",
+   "tx": "0xf2f49cf3d7f515656b81e0dc76e4fccef0bda3113c8853fba43fe44dd1580b5a"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0x3d9a08169b93edc016fc451059d4ecc9e6ff6622 (mimics 0x3d9a66df85d913b85d57b91229b025d6e4736622)",
+   "tx": "0xbf69d1f9cc28cfb49e5f995a5d49ba2e1f9f7201fc0c3903d3cef19729805270"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0x3d9a08169b93edc016fc451059d4ecc9e6ff6622 (mimics 0x3d9a66df85d913b85d57b91229b025d6e4736622)",
+   "tx": "0x1d869d4227bbe264220a1126f0afaa95b91a4c3eb8d15b5be1602ec2a5ccf7fe"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0x3d9a08169b93edc016fc451059d4ecc9e6ff6622 (mimics 0x3d9a66df85d913b85d57b91229b025d6e4736622)",
+   "tx": "0x83774c1b260fae516225580a84339c9f71716db075c56dea4e7cd11dbeb6018c"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0x3d9a2afd0b92932e55e4c8e07b4fd723b21d6622 (mimics 0x3d9a66df85d913b85d57b91229b025d6e4736622)",
+   "tx": "0x59abbd0899c13f055be0a5d67e1084fed8a19eccf984ffc28cb0a9144fb2514e"
+  },
+  {
+   "sev": "high",
+   "chain": "Ethereum",
+   "text": "Funds sent to look-alike 0x16f5f530d8c762ed5953921d426110913dcb0ae7 (mimics 0x16f509bff3ca9f4f3f036c8aca40c47e2e250ae7)",
+   "tx": "0xb5492f52e2e51567635e7adedcf7df71cc173319d7c500fa5a720f13c284f5c5"
   },
   {
    "sev": "medium",
@@ -15805,7 +15982,7 @@
    "text": "4 spam/airdrop-bait token(s) held: never interact with their sites"
   }
  ],
- "apiCalls": 39,
- "creditsRemaining": 93400,
+ "apiCalls": 42,
+ "creditsRemaining": 99300,
  "sample": true
 }

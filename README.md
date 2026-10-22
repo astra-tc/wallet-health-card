@@ -7,6 +7,9 @@ Live: https://astratc.github.io/wallet-health-card/ · Demo video: https://astra
 ## The problem
 Wallets get drained by two quiet things: old **unlimited token approvals** and **address poisoning** (look-alike addresses that send you zero-value transfers so you copy the wrong address from history). Checking for both means visiting several explorers, decoding approve() calls and comparing addresses by eye, on every chain you use.
 
+## Scan limits
+To stay fast and polite to the API, each chain scan reads the 2 most recent pages of transactions and of ERC-20 token transfers (about the latest 100 of each, 50 per page). Approvals or look-alike payments older than that window are not seen, so a clean card means "nothing found in recent activity", not a full-history audit. Very active wallets should be re-checked with a full-history tool before trusting an A.
+
 ## What it does
 With one PRO API key and one `chain_id` switch, it scans Ethereum, Optimism, Arbitrum One, Gnosis and Scroll (the free-tier chains). With a paid key, `--all` or the checkbox adds Base, Polygon and ZKsync; on a free key they're skipped with a note, since Base, Polygon and ZKsync have required a paid plan since 1 Oct 2026. It produces:
 - **Open approvals**: decoded `approve` / `increaseAllowance` / `setApprovalForAll` calls (latest per token+spender, revocations removed), with the spender's name, verification status and scam tags from Blockscout. Every spender is looked up. NFT approvals are read as NFT approvals: `setApprovalForAll` is a collection-wide approval, and ERC-721 `approve(to, tokenId)` covers one token. It flags unlimited (or collection-wide) approvals to unverified contracts.

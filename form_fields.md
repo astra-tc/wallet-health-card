@@ -14,4 +14,4 @@ Wallets get drained by two quiet problems: forgotten unlimited token approvals a
 - Repo: https://github.com/astratc/wallet-health-card
 - Demo video (3:26): https://astratc.github.io/wallet-health-card/demo.mp4
 - Logo: logo.png (512x512) · Screenshots: screenshots/1–4 · X visual: x_visual.png
-- X post URL: <fill after posting x_post.txt>
+- X post URL: https://x.com/AstraTradingCo/status/2112877027284164862
