@@ -20,10 +20,16 @@ export const clampPages = p => { const n = Math.floor(Number(p ?? DEFAULT_PAGES)
 // lookups come on top (~1 per approval), so show this as "~N calls + ~1 per approval".
 export const estimateCalls = (chains, pages = DEFAULT_PAGES) => chains * (3 + 2 * pages);
 
+const now = () => (globalThis.performance?.now ? globalThis.performance.now() : Date.now());
+// "/addresses/0xAbc…/token-balances" -> "/addresses/{address}/token-balances" (and /tokens/{token}), so the
+// evidence panel groups calls by endpoint without listing every spender address.
+export const endpointTemplate = path => String(path).replace(/^\/tokens\/0x[0-9a-fA-F]{40}/, "/tokens/{token}").replace(/0x[0-9a-fA-F]{40}/g, "{address}");
+
 export class Blockscout {
   constructor({ apiKey, fetchImpl = (...a) => globalThis.fetch(...a), base = "https://api.blockscout.com", timeoutMs = 20000, maxConcurrent = 3 }) {
     this.maxConcurrent = maxConcurrent; this.active = 0; this.queue = [];
-    this.apiKey = apiKey; this.fetch = fetchImpl; this.base = base; this.calls = 0; this.credits = null; this.creditsStart = null; this.timeoutMs = timeoutMs;
+    this.apiKey = apiKey; this.fetch = fetchImpl; this.base = base; this.calls = 0; this.credits = null; this.creditsStart = null; this.creditsFirst = null; this.timeoutMs = timeoutMs;
+    this.log = []; // one entry per HTTP request: { chainId, endpoint (address-templated), status, ms } for the evidence panel
   }
   async slot() { if (this.active < this.maxConcurrent) { this.active++; return; } await new Promise(r => this.queue.push(r)); this.active++; }
   release() { this.active--; const n = this.queue.shift(); if (n) n(); }
@@ -34,12 +40,13 @@ export class Blockscout {
     let last;
     for (let attempt = 0; attempt < 5; attempt++) {
       this.calls++;
-      let r;
+      let r; const t0 = now(); const entry = { chainId: Number(chainId), endpoint: endpointTemplate(path), status: null, ms: 0 }; this.log.push(entry);
       try {
         const sig = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(this.timeoutMs) : undefined;
         r = await this.fetch(u.toString(), { headers: { Authorization: `Bearer ${this.apiKey}`, Accept: "application/json" }, signal: sig });
-      } catch (e) { const to = e?.name === "TimeoutError" || e?.name === "AbortError"; last = new Error(to ? `Blockscout timeout on ${path}` : `Network error on ${path}: ${e?.message || e}`); last.status = to ? "timeout" : "network"; break; }
-      const c = r.headers?.get?.("x-credits-remaining"); if (c) { this.credits = Number(c); this.creditsStart = Math.max(this.creditsStart ?? -Infinity, this.credits); }
+      } catch (e) { const to = e?.name === "TimeoutError" || e?.name === "AbortError"; last = new Error(to ? `Blockscout timeout on ${path}` : `Network error on ${path}: ${e?.message || e}`); last.status = to ? "timeout" : "network"; entry.status = last.status; entry.ms = Math.round(now() - t0); break; }
+      entry.status = r.status; entry.ms = Math.round(now() - t0);
+      const c = r.headers?.get?.("x-credits-remaining"); if (c) { this.credits = Number(c); if (this.creditsFirst == null) this.creditsFirst = this.credits; this.creditsStart = Math.max(this.creditsStart ?? -Infinity, this.credits); }
       if (r.status === 429) { const reset = Number(r.headers?.get?.("x-ratelimit-reset")); await new Promise(s => setTimeout(s, Math.min(5000, reset > 0 ? reset + 100 : 1000 * (attempt + 1)))); last = null; continue; }
       if (r.status === 404) return null;
       if (r.status === 402) { const e = new Error("This chain needs a paid Blockscout plan (Builder/Business/Pro)"); e.status = 402; throw e; }
@@ -202,6 +209,7 @@ export async function scanChain(bs, chainId, addr, { pages = DEFAULT_PAGES } = {
   const poisoning = detectPoisoning(addr, transfers, txs);
   const balanceList = Array.isArray(balances) ? balances : balances?.items || [];
   const valueAtRisk = approvalValueAtRisk(approvals, balanceList);
+  for (const a of approvals) a.revoke = revokeHelp(addr, chainId, a);
   const tokens = balanceList.filter(b => b.token?.type === "ERC-20" || !b.token?.type).map(b => ({ symbol: b.token?.symbol, name: b.token?.name, address: b.token?.address_hash || b.token?.address,
     value: Number(b.value) / 10 ** Number(b.token?.decimals || 18), usd: b.token?.exchange_rate ? Number(b.value) / 10 ** Number(b.token.decimals || 18) * Number(b.token.exchange_rate) : null,
     reputation: b.token?.reputation || null, holders: Number(b.token?.holders_count || 0),
@@ -213,6 +221,47 @@ export async function scanChain(bs, chainId, addr, { pages = DEFAULT_PAGES } = {
     nativeUsd: info.exchange_rate ? Number(info.coin_balance || 0) / 1e18 * Number(info.exchange_rate) : null,
     tokenTransferCount: Number(counters?.token_transfers_count || 0), txCount: Number(counters?.transactions_count || txs.length), tokens, spamTokens, approvals, poisoning,
     valueAtRisk, scan, lastActive: txs[0]?.timestamp || null };
+}
+
+// Blockscout Explorer deep links (each finding gets the tx and the spender / contract page).
+export const explorerBase = chainId => CHAINS[chainId]?.explorer || "https://eth.blockscout.com";
+export const explorerTx = (chainId, h) => h ? `${explorerBase(chainId)}/tx/${h}` : null;
+export const explorerAddress = (chainId, a, contract = false) => a ? `${explorerBase(chainId)}/address/${a}${contract ? "?tab=contract" : ""}` : null;
+export const revokeCashUrl = (addr, chainId) => `https://revoke.cash/address/${addr}?chainId=${chainId}`;
+
+// Revoke helper: the exact call that removes an approval, for the wallet owner to send from their own wallet
+// (or via revoke.cash). We only describe it; this app never builds, asks for or signs a transaction.
+export function revokeHelp(addr, chainId, a) {
+  const tok = `${a.tokenName || short(a.token)} (${a.token})`;
+  const call = a.scope === "all" ? `setApprovalForAll(${a.spender}, false)` : a.scope === "single" ? `approve(${ZERO}, ${a.tokenId})` : `approve(${a.spender}, 0)`;
+  return { call, contract: a.token, text: `Call ${call} on ${tok}`, url: revokeCashUrl(addr, chainId), tokenUrl: explorerAddress(chainId, a.token, true) };
+}
+
+// "Powered by Blockscout" evidence: which PRO API endpoints were called, how often, credits before/after
+// (x-credits-remaining, when the API sends it) and latency per chain.
+export function evidence(bs, chainIds, wallMs = {}) {
+  const byEp = new Map();
+  for (const e of bs.log) { const k = e.endpoint; const x = byEp.get(k) || { endpoint: `GET /api/v2${k}`, calls: 0, chains: new Set(), errors: 0 };
+    x.calls++; x.chains.add(e.chainId); if (!(e.status >= 200 && e.status < 300) && e.status !== 404) x.errors++; byEp.set(k, x); }
+  const endpoints = [...byEp.values()].map(x => ({ ...x, chains: [...x.chains].sort((a, b) => a - b) })).sort((a, b) => b.calls - a.calls || a.endpoint.localeCompare(b.endpoint));
+  const perChain = chainIds.map(id => { const l = bs.log.filter(e => e.chainId === Number(id)); const ms = l.map(e => e.ms);
+    return { chainId: Number(id), chain: CHAINS[id]?.name || String(id), calls: l.length, avgMs: ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : null,
+      maxMs: ms.length ? Math.max(...ms) : null, wallMs: wallMs[id] ?? null }; });
+  const before = bs.creditsStart != null ? bs.creditsStart : null, after = bs.credits;
+  return { api: `${bs.base}/{chain_id}/api/v2`, totalCalls: bs.calls, endpoints, perChain,
+    credits: { before, after, used: before != null && after != null ? before - after : null, header: "x-credits-remaining", reported: before != null } };
+}
+
+// Plain-text evidence panel (CLI and tests).
+export function formatEvidence(ev) {
+  if (!ev) return [];
+  const c = ev.credits, out = ["", `Powered by Blockscout PRO API (${ev.api})`, `  ${ev.totalCalls} API calls · credits (${c.header}): ` +
+    (c.reported ? `${c.before} before → ${c.after} after = ${c.used} used` : "not reported by the API for this key")];
+  out.push("  Endpoints called:");
+  for (const e of ev.endpoints) out.push(`    ${String(e.calls).padStart(4)} × ${e.endpoint}${e.errors ? ` (${e.errors} errors)` : ""}`);
+  out.push("  Per-chain latency:");
+  for (const p of ev.perChain) out.push(`    ${p.chain.padEnd(13)} ${String(p.calls).padStart(4)} calls · avg ${p.avgMs ?? "-"} ms · max ${p.maxMs ?? "-"} ms · scan ${p.wallMs ?? "-"} ms`);
+  return out;
 }
 
 export const SEV_RANK = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
@@ -227,7 +276,8 @@ export function score(chains) {
     for (const a of c.approvals) {
       const what = a.scope === "all" ? `Approval for ALL ${a.tokenName} NFTs` : a.scope === "single" ? `Approval of ${a.tokenName} NFT #${a.tokenId}` : `Unlimited approval on ${a.tokenName}`;
       const atRisk = a.usdAtRisk > 0, risk = riskText(a);
-      const f = (sev, text) => findings.push({ sev, chain: n, text: text + risk, tx: a.tx, spender: a.spender, usdAtRisk: a.usdAtRisk ?? null });
+      const f = (sev, text) => findings.push({ sev, chain: n, chainId: c.chainId, text: text + risk, tx: a.tx, spender: a.spender, usdAtRisk: a.usdAtRisk ?? null,
+        links: { tx: explorerTx(c.chainId, a.tx), contract: explorerAddress(c.chainId, a.spender, a.spenderIsContract !== false) }, revoke: a.revoke || null });
       if (a.spenderScam) { s -= 30; f(atRisk ? "critical" : "high", `Approval to flagged address ${a.spender} on ${a.tokenName}`); }
       else if (!a.unlimited) continue; // limited ERC-20 allowances and single-NFT approvals are not scored
       // Unlimited approval to an unverified spender while the wallet still holds a priced balance of that token = critical.
@@ -236,10 +286,12 @@ export function score(chains) {
       else { s -= 4; f("medium", `${what} to ${a.spenderName || a.spender}`); }
     }
     for (const p of c.poisoning) {
-      if (p.sentToFake) { s -= 30; findings.push({ sev: "high", chain: n, text: `Funds sent to look-alike ${p.fake} (mimics ${p.mimics})`, tx: p.tx }); }
-      else { s -= 5; findings.push({ sev: "medium", chain: n, text: `Address-poisoning attempt: ${p.fake} mimics your contact ${p.mimics}${p.zeroValue ? " (zero-value transfer)" : ""}`, tx: p.tx }); }
+      const links = { tx: explorerTx(c.chainId, p.tx), contract: explorerAddress(c.chainId, p.fake) }; // look-alikes are usually EOAs: plain address page
+      if (p.sentToFake) { s -= 30; findings.push({ sev: "high", chain: n, chainId: c.chainId, text: `Funds sent to look-alike ${p.fake} (mimics ${p.mimics})`, tx: p.tx, address: p.fake, links }); }
+      else { s -= 5; findings.push({ sev: "medium", chain: n, chainId: c.chainId, text: `Address-poisoning attempt: ${p.fake} mimics your contact ${p.mimics}${p.zeroValue ? " (zero-value transfer)" : ""}`, tx: p.tx, address: p.fake, links }); }
     }
-    if (c.spamTokens.length) { s -= Math.min(10, c.spamTokens.length * 2); findings.push({ sev: "low", chain: n, text: `${c.spamTokens.length} spam/airdrop-bait token(s) held: never interact with their sites` }); }
+    if (c.spamTokens.length) { s -= Math.min(10, c.spamTokens.length * 2); findings.push({ sev: "low", chain: n, chainId: c.chainId, text: `${c.spamTokens.length} spam/airdrop-bait token(s) held: never interact with their sites`,
+      links: { tx: null, contract: c.spamTokens[0]?.address ? explorerAddress(c.chainId, c.spamTokens[0].address, true) : null } }); }
   }
   for (const c of chains.filter(c => c.needsPaidPlan)) findings.push({ sev: "info", chain: CHAINS[c.chainId]?.name || c.chainId, text: "Skipped: this chain needs a paid Blockscout PRO plan" });
   for (const c of chains.filter(c => c.active && c.scan)) {
@@ -260,7 +312,10 @@ export async function healthCard(apiKey, addr, chainIds = FREE_CHAINS, opts = {}
   if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) throw new Error("Enter a valid 0x address");
   const { pages: rawPages, ...bsOpts } = opts; const pages = clampPages(rawPages);
   const bs = new Blockscout({ apiKey, ...bsOpts });
-  const chains = await Promise.all(chainIds.map(id => scanChain(bs, id, addr, { pages }).catch(e => ({ chainId: id, active: false, error: e.message, needsPaidPlan: e.status === 402 }))));
+  const wallMs = {};
+  const chains = await Promise.all(chainIds.map(async id => { const t0 = now();
+    try { return await scanChain(bs, id, addr, { pages }); } catch (e) { return { chainId: id, active: false, error: e.message, needsPaidPlan: e.status === 402 }; }
+    finally { wallMs[id] = Math.round(now() - t0); } }));
   if (chains.length && chains.every(c => c.error && /key rejected/.test(c.error))) throw new Error("Blockscout API key rejected");
   if (chains.length && chains.every(c => c.error)) throw new Error(`Could not reach Blockscout on any chain: ${chains[0].error}`);
   const act = chains.filter(c => c.active);
@@ -269,5 +324,17 @@ export async function healthCard(apiKey, addr, chainIds = FREE_CHAINS, opts = {}
   const scanDepth = { pages, tier: pages > DEFAULT_PAGES ? "deep" : "standard", estimatedCalls: estimateCalls(chainIds.length, pages),
     truncatedChains: act.filter(c => c.scan?.txTruncated || c.scan?.transferTruncated).map(c => CHAINS[c.chainId]?.name || c.chainId) };
   return { address: addr, generatedAt: new Date().toISOString(), chains, ...score(chains), valueAtRisk, scanDepth, apiCalls: bs.calls,
-    creditsRemaining: bs.credits, creditsUsed: bs.creditsStart != null && bs.credits != null ? bs.creditsStart - bs.credits : null };
+    creditsRemaining: bs.credits, creditsUsed: bs.creditsStart != null && bs.credits != null ? bs.creditsStart - bs.credits : null, evidence: evidence(bs, chainIds, wallMs) };
+}
+
+// Content for the shareable PNG card (drawn client-side on a canvas; nothing is uploaded).
+export function cardSummary(r) {
+  // Worst first (older recorded scans were not sorted). Addresses keep 8 leading hex chars so a look-alike and
+  // the contact it mimics (same first 4 + last 4) stay visibly different on the card.
+  const top = (r.findings || []).filter(f => f.sev !== "info").map((f, i) => [f, i])
+    .sort(([a, i], [b, j]) => (SEV_RANK[a.sev] ?? 9) - (SEV_RANK[b.sev] ?? 9) || (b.usdAtRisk || 0) - (a.usdAtRisk || 0) || i - j).slice(0, 3)
+    .map(([f]) => ({ sev: f.sev, chain: f.chain, text: f.text.replace(/0x[0-9a-fA-F]{40}/g, a => `${a.slice(0, 10)}…${a.slice(-4)}`) }));
+  const active = (r.chains || []).filter(c => c.active).map(c => CHAINS[c.chainId]?.name || c.chainId);
+  return { grade: r.grade, score: r.score, address: short(r.address), chains: active, valueAtRiskUsd: r.valueAtRisk?.usd ?? null, top,
+    more: Math.max(0, (r.findings || []).filter(f => f.sev !== "info").length - top.length), apiCalls: r.apiCalls, date: String(r.generatedAt || "").slice(0, 10) };
 }

@@ -1,6 +1,6 @@
 // CORS proxy for the Blockscout PRO API (api.blockscout.com sends no Access-Control-Allow-Origin).
 // Forwards only GET /{chain_id}/api/v2/... with the caller's own key. Stores and logs nothing.
-const ALLOWED = ["https://astratc.github.io", "http://localhost:8080", "http://127.0.0.1:8080"];
+const ALLOWED = ["https://astratc.github.io", "https://astra-tc.github.io", "http://localhost:8080", "http://127.0.0.1:8080"];
 export default {
   async fetch(req) {
     const origin = req.headers.get("Origin") || "";

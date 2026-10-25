@@ -1,5 +1,6 @@
 // Offline test with a mocked Blockscout PRO API.
-import { healthCard, ALL_CHAINS, detectPoisoning, extractApprovals, estimateCalls, approvalValueAtRisk, clampPages } from "../docs/core.js";
+import { healthCard, ALL_CHAINS, detectPoisoning, extractApprovals, estimateCalls, approvalValueAtRisk, clampPages, endpointTemplate, formatEvidence, cardSummary, revokeHelp } from "../docs/core.js";
+import { spawnSync } from "child_process"; import { readFileSync } from "fs";
 import assert from "assert";
 const ME = "0x1111aaaa00000000000000000000000000001234", FRIEND = "0xabcd000000000000000000000000000000005678",
   FAKE = "0xabcdffffffffffffffffffffffffffffffff5678", DRAINER = "0x9999000000000000000000000000000000000bad",
@@ -160,4 +161,64 @@ assert.equal(estimateCalls(5, 2), 35); assert.equal(estimateCalls(5, 25), 265); 
   assert.equal(rv.valueAtRisk.byChain.Optimism, 5350); assert.equal(rv.valueAtRisk.byChain["Arbitrum One"], 100); assert.equal(rv.valueAtRisk.usd, 5450);
   const meds = rv.findings.filter(f => f.sev === "medium"); assert.deepEqual(meds.map(f => f.usdAtRisk), [5200, 150], "sorted by USD at risk");
   assert.ok(!rv.findings.some(f => f.sev === "critical" || f.sev === "high")); }
-console.log("all tests passed:", r.grade, r.score, r.findings.length, "findings,", r.apiCalls, "mock API calls; deep-scan (a-c) + value-at-risk tests ok");
+// Sprint 2 (#2): "Powered by Blockscout" evidence panel: endpoints, call counts, credits before/after, per-chain latency.
+{ const ev = r.evidence; assert.ok(ev, "evidence attached to every report");
+  assert.equal(ev.totalCalls, r.apiCalls); assert.equal(ev.endpoints.reduce((t, e) => t + e.calls, 0), r.apiCalls, "every call is attributed to an endpoint");
+  assert.equal(ev.api, "https://api.blockscout.com/{chain_id}/api/v2");
+  const eps = Object.fromEntries(ev.endpoints.map(e => [e.endpoint, e]));
+  for (const k of ["/addresses/{address}", "/addresses/{address}/counters", "/addresses/{address}/token-balances", "/addresses/{address}/token-transfers", "/addresses/{address}/transactions", "/tokens/{token}"])
+    assert.ok(eps[`GET /api/v2${k}`], `endpoint listed: ${k}`);
+  assert.equal(eps["GET /api/v2/addresses/{address}"].errors, 3, "the three 402 paid-chain calls are counted as errors");
+  assert.deepEqual(eps["GET /api/v2/tokens/{token}"].chains, [10]);
+  assert.ok(!/0x[0-9a-fA-F]{40}/.test(JSON.stringify(ev)), "evidence groups by endpoint template, no raw addresses");
+  assert.equal(ev.perChain.length, ALL_CHAINS.length); const op = ev.perChain.find(p => p.chainId === 10);
+  assert.ok(op.calls > 5 && Number.isFinite(op.avgMs) && Number.isFinite(op.maxMs) && Number.isFinite(op.wallMs));
+  assert.equal(ev.perChain.reduce((t, p) => t + p.calls, 0), r.apiCalls);
+  assert.deepEqual(ev.credits, { before: 99000, after: 99000, used: 0, header: "x-credits-remaining", reported: true });
+  assert.equal(endpointTemplate(`/tokens/${USDC}`), "/tokens/{token}"); assert.equal(endpointTemplate(`/addresses/${ME}/token-transfers`), "/addresses/{address}/token-transfers");
+  // Credits measured from x-credits-remaining: decreasing header -> before/after/used.
+  let n = 1000; const rc = await healthCard("proapi_test", ME, [10], { fetchImpl: async url => { const path = new URL(url).pathname.replace(/^\/10\/api\/v2/, ""); const body = db[path];
+    return { ok: !!body, status: body ? 200 : 404, headers: new Map([["x-credits-remaining", String(--n)]]), json: async () => body }; } });
+  assert.equal(rc.evidence.credits.before, 999); assert.equal(rc.evidence.credits.after, 1000 - rc.apiCalls); assert.equal(rc.evidence.credits.used, rc.apiCalls - 1); assert.equal(rc.creditsUsed, rc.apiCalls - 1);
+  const txt = formatEvidence(rc.evidence).join("\n");
+  assert.ok(/Powered by Blockscout PRO API/.test(txt) && /999 before → \d+ after = \d+ used/.test(txt) && /Per-chain latency/.test(txt) && /Optimism .* calls · avg \d+ ms · max \d+ ms · scan \d+ ms/.test(txt));
+  // No header -> "not reported", never a made-up number.
+  const { r: rn } = await scan(wallet([]));
+  assert.equal(rn.evidence.credits.reported, false); assert.equal(rn.evidence.credits.used, null); assert.ok(/not reported/.test(formatEvidence(rn.evidence).join("\n"))); }
+// Sprint 2 (#2): two Blockscout Explorer links per finding (tx + spender contract page / look-alike address page).
+{ const d = r.findings.find(f => f.text.includes(DRAINER));
+  assert.equal(d.links.tx, "https://optimism.blockscout.com/tx/0xappr2"); assert.equal(d.links.contract, `https://optimism.blockscout.com/address/${DRAINER}?tab=contract`); assert.equal(d.chainId, 10);
+  const p = r.findings.find(f => /poisoning/.test(f.text));
+  assert.equal(p.links.tx, "https://optimism.blockscout.com/tx/0xpoison1"); assert.equal(p.links.contract, `https://optimism.blockscout.com/address/${FAKE}`, "look-alike EOA: plain address page");
+  assert.ok(r.findings.filter(f => f.sev !== "info" && f.tx).every(f => f.links.tx && f.links.contract), "every tx-backed finding has both links"); }
+// Sprint 2 (#6): revoke helper text: exact call + revoke.cash link per chain; never a built or signed transaction.
+{ const d = r.findings.find(f => f.text.includes(DRAINER));
+  assert.equal(d.revoke.call, `approve(${DRAINER}, 0)`); assert.equal(d.revoke.contract, USDC); assert.equal(d.revoke.url, `https://revoke.cash/address/${ME}?chainId=10`);
+  assert.equal(d.revoke.text, `Call approve(${DRAINER}, 0) on USDC (${USDC})`); assert.equal(d.revoke.tokenUrl, `https://optimism.blockscout.com/address/${USDC}?tab=contract`);
+  assert.ok(base.approvals.every(a => a.revoke && a.revoke.url.endsWith("chainId=10")));
+  assert.ok(!r.findings.some(f => /poisoning|look-alike/.test(f.text) && f.revoke), "no revoke text on non-approval findings");
+  const OP = "0x5555000000000000000000000000000000000555", NFT = "0x00000000000000000000000000000000000a721a";
+  assert.equal(revokeHelp(ME, 42161, { token: NFT, tokenName: "PUNK", scope: "all", spender: OP }).call, `setApprovalForAll(${OP}, false)`);
+  assert.equal(revokeHelp(ME, 42161, { token: NFT, tokenName: "PUNK", scope: "single", spender: OP, tokenId: "7" }).call, `approve(0x${"0".repeat(40)}, 7)`);
+  assert.equal(revokeHelp(ME, 534352, { token: USDC, scope: "amount", spender: OP }).url, `https://revoke.cash/address/${ME}?chainId=534352`);
+  const src = ["docs/core.js", "docs/app.js", "cli/health.mjs"].map(f => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")).join("\n");
+  assert.ok(!/eth_sendTransaction|eth_sign|personal_sign|signTypedData|signTransaction|sendTransaction|window\.ethereum/.test(src), "read-only: no signing or wallet calls anywhere"); }
+// Sprint 2 (#5): shareable PNG card content (canvas drawing itself lives in docs/app.js).
+{ const s = cardSummary(r);
+  assert.equal(s.grade, "B"); assert.equal(s.score, 74); assert.equal(s.address, "0x1111…1234"); assert.deepEqual(s.chains, ["Optimism"]);
+  assert.equal(s.top.length, 3); assert.equal(s.more, 1); assert.equal(s.top[0].sev, "high"); assert.ok(s.top.every(f => f.sev !== "info"));
+  assert.ok(!/0x[0-9a-fA-F]{40}/.test(JSON.stringify(s)), "card shortens every address"); assert.equal(s.valueAtRiskUsd, 0); assert.equal(s.apiCalls, r.apiCalls);
+  const sample = JSON.parse(readFileSync(new URL("../docs/sample.json", import.meta.url), "utf8")); const ss = cardSummary(sample);
+  assert.equal(ss.grade, sample.grade); assert.equal(ss.top.length, 3); assert.ok(ss.top.every(f => f.sev === "high"), "card shows worst findings first even for an unsorted recorded scan");
+  assert.ok(/look-alike 0x[0-9a-f]{8}…[0-9a-f]{4} \(mimics 0x[0-9a-f]{8}…/.test(ss.top[0].text)); const [fa, mi] = ss.top[0].text.match(/0x[0-9a-f]{8}…[0-9a-f]{4}/g); assert.notEqual(fa, mi, "look-alike and real contact stay distinguishable"); }
+// CLI prints the evidence panel, both Explorer links and the revoke line (offline: fetch mocked via --import).
+{ const run = extra => spawnSync(process.execPath, ["--import", new URL("./cli-mock.mjs", import.meta.url).href, new URL("../cli/health.mjs", import.meta.url).pathname, ME, "10", ...extra],
+    { env: { ...process.env, BLOCKSCOUT_API_KEY: "proapi_test" }, encoding: "utf8" });
+  const o = run([]); assert.equal(o.status, 0, o.stderr); const out = o.stdout;
+  assert.ok(out.includes("tx:       https://optimism.blockscout.com/tx/0xappr")); assert.ok(out.includes(`spender:  https://optimism.blockscout.com/address/0x9999000000000000000000000000000000000bad?tab=contract`));
+  assert.ok(out.includes("revoke:   Call approve(0x9999000000000000000000000000000000000bad, 0) on USDC")); assert.ok(out.includes("https://revoke.cash/address/" + ME + "?chainId=10"));
+  assert.ok(/Powered by Blockscout PRO API/.test(out) && /4999 before → \d+ after = \d+ used/.test(out) && /GET \/api\/v2\/addresses\/\{address\}\/transactions/.test(out) && /Optimism\s+\d+ calls · avg/.test(out));
+  assert.ok(/\[critical\] Optimism: Unlimited approval on USDC to unverified/.test(out), "$5 balance + unverified spender = critical");
+  const b = run(["--brief"]); assert.equal(b.status, 0); assert.ok(!b.stdout.includes("revoke:") && !b.stdout.includes("Endpoints called") && /Blockscout PRO API calls/.test(b.stdout));
+  const j = run(["--json"]); assert.equal(j.status, 0); const jr = JSON.parse(j.stdout); assert.ok(jr.evidence.endpoints.length >= 5 && jr.findings[0].links.contract && jr.findings[0].revoke.call); }
+console.log("all tests passed:", r.grade, r.score, r.findings.length, "findings,", r.apiCalls, "mock API calls; deep-scan (a-c) + value-at-risk + evidence panel + explorer links + revoke helper + PNG card + CLI tests ok");
