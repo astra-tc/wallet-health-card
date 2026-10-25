@@ -11,12 +11,14 @@ table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px so
 h1{font-family:Cinzel,Georgia,serif;color:#d4af6a}.card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(107,21,48,.2))}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid rgba(212,175,106,.28);flex-wrap:wrap}
 .top a{text-decoration:none}.top .b{display:flex;align-items:center;gap:10px;color:#fff;font-family:Cinzel,serif;font-weight:700}.top img{height:34px}
+.critical{color:#ff3b3b;font-weight:800}.var{margin-top:8px;font-size:18px}.badge{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid rgba(212,175,106,.5);color:#d4af6a;white-space:nowrap}.badge.trunc{border-color:#d29922;color:#d29922}
 @media(max-width:600px){body{padding:14px}}
 </style></head><body>
 <header class="top"><a class="b" href="https://astratc.github.io/"><img src="crest.png" alt="Astra crest">Astra Trading Co.</a><a href="https://astratc.github.io/">← Company site</a></header>
 <h1>Wallet Health Card</h1><div class="muted">Paste any address. One Blockscout PRO API key scans Ethereum, Optimism, Arbitrum, Gnosis and Scroll for risky approvals, address-poisoning attacks and spam tokens. Read-only: no wallet connect, no signing.</div>
 <div class="card">
 <input id="addr" placeholder="0x… address"> <button id="go">Scan</button> <button id="demo" title="Load a real recorded scan">Sample scan</button> <label><input type="checkbox" id="paid"> include Base, Polygon, ZKsync (paid plan)</label><br><br>
+<label>Scan depth <select id="pages"><option value="2" selected>Standard (2 pages, ~100 txs/chain)</option><option value="10">Deep (10 pages, ~500 txs/chain)</option><option value="25">Full (25 pages, ~1,250 txs/chain)</option></select></label> <small id="est"></small><br><br>
 <input id="key" type="password" placeholder="Blockscout PRO API key (proapi_…)" size="40"> <small>Stored only in this browser. Get one free at <a href="https://dev.blockscout.com" target="_blank">dev.blockscout.com</a></small>
 </div>
 <div id="out"></div>

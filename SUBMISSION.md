@@ -22,4 +22,4 @@ Watch mode alerts, an approval value-at-risk metric, a shareable card image, and
 
 ## Team
 Astra Trading Co.
-STATUS: Sprint 01 SUBMITTED (verified on craftora page 2026-10-22 01:57 UTC+4). Judging Oct 22-24.
+STATUS: Sprint 01 SUBMITTED (submit flow run 2026-10-21 16:05 UTC+4 per box browser history; Craftora project 30d0028f-08cd-416a-9e7d-6fb866c963bc; submissions tab re-checked 2026-10-22 01:57 UTC+4). Judging Oct 22-24. Sprint 02: build 25-31 Oct, submit target 30 Oct.

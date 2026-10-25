@@ -14,11 +14,16 @@ export const CHAINS = {
 export const FREE_CHAINS = Object.keys(CHAINS).filter(k => !CHAINS[k].paid).map(Number);
 export const ALL_CHAINS = Object.keys(CHAINS).map(Number);
 const MAX_UINT_HEX_LEN = 60; // approvals >= ~2^240 count as "unlimited"
+export const DEFAULT_PAGES = 2, MAX_PAGES = 25; // pages of 50 per list (transactions, token transfers) per chain
+export const clampPages = p => { const n = Math.floor(Number(p ?? DEFAULT_PAGES)); return Number.isFinite(n) ? Math.min(MAX_PAGES, Math.max(1, n)) : DEFAULT_PAGES; };
+// Up-front estimate per chain: /addresses, /counters, /token-balances + 2 paginated lists. Spender and token
+// lookups come on top (~1 per approval), so show this as "~N calls + ~1 per approval".
+export const estimateCalls = (chains, pages = DEFAULT_PAGES) => chains * (3 + 2 * pages);
 
 export class Blockscout {
   constructor({ apiKey, fetchImpl = (...a) => globalThis.fetch(...a), base = "https://api.blockscout.com", timeoutMs = 20000, maxConcurrent = 3 }) {
     this.maxConcurrent = maxConcurrent; this.active = 0; this.queue = [];
-    this.apiKey = apiKey; this.fetch = fetchImpl; this.base = base; this.calls = 0; this.credits = null; this.timeoutMs = timeoutMs;
+    this.apiKey = apiKey; this.fetch = fetchImpl; this.base = base; this.calls = 0; this.credits = null; this.creditsStart = null; this.timeoutMs = timeoutMs;
   }
   async slot() { if (this.active < this.maxConcurrent) { this.active++; return; } await new Promise(r => this.queue.push(r)); this.active++; }
   release() { this.active--; const n = this.queue.shift(); if (n) n(); }
@@ -34,7 +39,7 @@ export class Blockscout {
         const sig = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(this.timeoutMs) : undefined;
         r = await this.fetch(u.toString(), { headers: { Authorization: `Bearer ${this.apiKey}`, Accept: "application/json" }, signal: sig });
       } catch (e) { const to = e?.name === "TimeoutError" || e?.name === "AbortError"; last = new Error(to ? `Blockscout timeout on ${path}` : `Network error on ${path}: ${e?.message || e}`); last.status = to ? "timeout" : "network"; break; }
-      const c = r.headers?.get?.("x-credits-remaining"); if (c) this.credits = Number(c);
+      const c = r.headers?.get?.("x-credits-remaining"); if (c) { this.credits = Number(c); this.creditsStart = Math.max(this.creditsStart ?? -Infinity, this.credits); }
       if (r.status === 429) { const reset = Number(r.headers?.get?.("x-ratelimit-reset")); await new Promise(s => setTimeout(s, Math.min(5000, reset > 0 ? reset + 100 : 1000 * (attempt + 1)))); last = null; continue; }
       if (r.status === 404) return null;
       if (r.status === 402) { const e = new Error("This chain needs a paid Blockscout plan (Builder/Business/Pro)"); e.status = 402; throw e; }
@@ -44,13 +49,15 @@ export class Blockscout {
     }
     throw last || new Error(`Blockscout rate-limited on ${path}`);
   }
-  async pages(chainId, path, params = {}, maxPages = 2) {
-    const out = []; let next = {};
+  // Follows next_page_params for up to maxPages pages. truncated = the API still had a next page when we stopped.
+  async pages(chainId, path, params = {}, maxPages = DEFAULT_PAGES) {
+    const items = []; let next = {}, pagesFetched = 0;
     for (let i = 0; i < maxPages && next; i++) {
       const j = await this.get(chainId, path, { ...params, ...next });
-      if (!j) break; out.push(...(j.items || [])); next = j.next_page_params || null;
+      if (!j) { next = null; break; }
+      pagesFetched++; items.push(...(j.items || [])); next = j.next_page_params || null;
     }
-    return out;
+    return { items, truncated: next != null, pagesFetched };
   }
 }
 
@@ -118,7 +125,7 @@ export function extractApprovals(addr, txs, tokenTypes = {}) {
       const spender = lc(arg(/spender/i, 0));
       const raw = String(arg(/amount|value|addedValue/i, 1) ?? "");
       const unlimited = /^\d+$/.test(raw) && BigInt(raw).toString(16).length >= MAX_UINT_HEX_LEN;
-      map.set(`${token}|${spender}`, { ...base, nft: false, scope: "amount", spender, unlimited, revoked: raw === "0" });
+      map.set(`${token}|${spender}`, { ...base, nft: false, scope: "amount", spender, unlimited, allowanceRaw: /^\d+$/.test(raw) ? raw : null, revoked: raw === "0" });
     }
   }
   return [...map.values()].filter(a => !a.revoked);
@@ -148,24 +155,54 @@ export async function enrichSpenders(bs, chainId, approvals, tokenInfo = null) {
   return approvals;
 }
 
-export async function scanChain(bs, chainId, addr) {
+// Approval value-at-risk: what a spender could pull from this wallet right now, per ERC-20 approval:
+// min(approved amount, current balance) x exchange_rate (from /addresses/{a}/token-balances).
+// The approved amount is the one set by the latest approve call (an upper bound: allowance already spent via
+// transferFrom is not subtracted). Thin/suspicious prices are not trusted (usdAtRisk null, units still shown).
+export function approvalValueAtRisk(approvals, balances) {
+  const bal = new Map();
+  for (const b of balances) { const a = lc(b.token?.address_hash || b.token?.address); if (a) bal.set(a, b); }
+  let usd = 0, priced = 0, unpriced = 0;
+  for (const a of approvals) {
+    a.usdAtRisk = null; a.amountAtRisk = null;
+    if (a.nft) continue; // NFT approvals have no fungible balance/price to value
+    const b = bal.get(lc(a.token)); const held = /^\d+$/.test(String(b?.value ?? "")) ? BigInt(b.value) : 0n;
+    const allowed = a.unlimited ? held : (a.allowanceRaw != null ? BigInt(a.allowanceRaw) : held);
+    const raw = allowed < held ? allowed : held; const dec = Number(b?.token?.decimals || 18);
+    a.amountAtRisk = Number(raw) / 10 ** dec;
+    if (raw === 0n) { a.usdAtRisk = 0; priced++; continue; }
+    const t = b?.token || {}; const rate = Number(t.exchange_rate); const holders = Number(t.holders_count || t.holders || 0); const mcap = Number(t.circulating_market_cap || 0);
+    const v = a.amountAtRisk * rate;
+    if (!(rate > 0) || holders < 500 || (mcap > 0 && v > mcap)) { unpriced++; continue; } // same price sanity as token totals
+    a.usdAtRisk = v; usd += v; priced++;
+  }
+  return { usd, pricedApprovals: priced, unpricedApprovals: unpriced };
+}
+
+export async function scanChain(bs, chainId, addr, { pages = DEFAULT_PAGES } = {}) {
   const info = await bs.get(chainId, `/addresses/${addr}`);
   if (!info) return { chainId, active: false };
   const warnings = [];
   const soft = (label, dflt) => e => { warnings.push(`${label}: ${e.message}`); return dflt; };
-  const [balances, transfers, txs, counters] = await Promise.all([
+  const empty = { items: [], truncated: false, pagesFetched: 0 };
+  const [balances, trPage, txPage, counters] = await Promise.all([
     bs.get(chainId, `/addresses/${addr}/token-balances`).catch(soft("token balances", [])),
-    bs.pages(chainId, `/addresses/${addr}/token-transfers`, { type: "ERC-20" }, 2).catch(soft("token transfers", [])),
-    bs.pages(chainId, `/addresses/${addr}/transactions`, {}, 2).catch(soft("transactions", [])),
+    bs.pages(chainId, `/addresses/${addr}/token-transfers`, { type: "ERC-20" }, pages).catch(soft("token transfers", empty)),
+    bs.pages(chainId, `/addresses/${addr}/transactions`, {}, pages).catch(soft("transactions", empty)),
     bs.get(chainId, `/addresses/${addr}/counters`).catch(soft("counters", null)),
   ]);
+  const transfers = trPage.items, txs = txPage.items;
+  const scan = { pages, txsScanned: txs.length, transfersScanned: transfers.length, txTruncated: txPage.truncated, transferTruncated: trPage.truncated,
+    oldestTxAt: txs.length ? txs[txs.length - 1].timestamp || null : null };
   const active = (counters && Number(counters.transactions_count) > 0) || txs.length > 0 || transfers.length > 0 || Number(info.coin_balance) > 0;
   if (!active) return { chainId, active: false };
   const tokenInfo = await fetchTokens(bs, chainId, approvalTokens(addr, txs));
   const tokenTypes = Object.fromEntries(Object.entries(tokenInfo).map(([k, v]) => [k, v?.type || null]));
   const approvals = await enrichSpenders(bs, chainId, extractApprovals(addr, txs, tokenTypes), tokenInfo);
   const poisoning = detectPoisoning(addr, transfers, txs);
-  const tokens = (Array.isArray(balances) ? balances : balances?.items || []).filter(b => b.token?.type === "ERC-20" || !b.token?.type).map(b => ({ symbol: b.token?.symbol, name: b.token?.name, address: b.token?.address_hash || b.token?.address,
+  const balanceList = Array.isArray(balances) ? balances : balances?.items || [];
+  const valueAtRisk = approvalValueAtRisk(approvals, balanceList);
+  const tokens = balanceList.filter(b => b.token?.type === "ERC-20" || !b.token?.type).map(b => ({ symbol: b.token?.symbol, name: b.token?.name, address: b.token?.address_hash || b.token?.address,
     value: Number(b.value) / 10 ** Number(b.token?.decimals || 18), usd: b.token?.exchange_rate ? Number(b.value) / 10 ** Number(b.token.decimals || 18) * Number(b.token.exchange_rate) : null,
     reputation: b.token?.reputation || null, holders: Number(b.token?.holders_count || 0),
     mcap: Number(b.token?.circulating_market_cap || 0) }));
@@ -175,8 +212,13 @@ export async function scanChain(bs, chainId, addr) {
   return { chainId, active: true, warnings, ens: info.ens_domain_name || null, delegatedTo: info.implementations?.[0]?.name || null, isContract: info.is_contract, nativeBalance: Number(info.coin_balance || 0) / 1e18,
     nativeUsd: info.exchange_rate ? Number(info.coin_balance || 0) / 1e18 * Number(info.exchange_rate) : null,
     tokenTransferCount: Number(counters?.token_transfers_count || 0), txCount: Number(counters?.transactions_count || txs.length), tokens, spamTokens, approvals, poisoning,
-    lastActive: txs[0]?.timestamp || null };
+    valueAtRisk, scan, lastActive: txs[0]?.timestamp || null };
 }
+
+export const SEV_RANK = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+const fmtUsd = v => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const riskText = a => a.nft || a.amountAtRisk == null ? "" : a.usdAtRisk != null ? ` (${fmtUsd(a.usdAtRisk)} at risk)` :
+  ` (${+a.amountAtRisk.toPrecision(6)} ${a.tokenName} at risk, no reliable USD price)`;
 
 export function score(chains) {
   let s = 100; const findings = [];
@@ -184,11 +226,14 @@ export function score(chains) {
     const n = CHAINS[c.chainId]?.name || c.chainId;
     for (const a of c.approvals) {
       const what = a.scope === "all" ? `Approval for ALL ${a.tokenName} NFTs` : a.scope === "single" ? `Approval of ${a.tokenName} NFT #${a.tokenId}` : `Unlimited approval on ${a.tokenName}`;
-      if (a.spenderScam) { s -= 30; findings.push({ sev: "high", chain: n, text: `Approval to flagged address ${a.spender} on ${a.tokenName}`, tx: a.tx }); }
+      const atRisk = a.usdAtRisk > 0, risk = riskText(a);
+      const f = (sev, text) => findings.push({ sev, chain: n, text: text + risk, tx: a.tx, spender: a.spender, usdAtRisk: a.usdAtRisk ?? null });
+      if (a.spenderScam) { s -= 30; f(atRisk ? "critical" : "high", `Approval to flagged address ${a.spender} on ${a.tokenName}`); }
       else if (!a.unlimited) continue; // limited ERC-20 allowances and single-NFT approvals are not scored
-      else if (a.spenderVerified === false) { s -= 15; findings.push({ sev: "high", chain: n, text: `${what} to unverified ${a.spender}`, tx: a.tx }); }
-      else if (a.spenderVerified == null) { s -= 4; findings.push({ sev: "medium", chain: n, text: `${what} to ${a.spenderName || a.spender} (spender could not be checked)`, tx: a.tx }); }
-      else { s -= 4; findings.push({ sev: "medium", chain: n, text: `${what} to ${a.spenderName || a.spender}`, tx: a.tx }); }
+      // Unlimited approval to an unverified spender while the wallet still holds a priced balance of that token = critical.
+      else if (a.spenderVerified === false) { s -= atRisk ? 30 : 15; f(atRisk ? "critical" : "high", `${what} to unverified ${a.spender}`); }
+      else if (a.spenderVerified == null) { s -= 4; f("medium", `${what} to ${a.spenderName || a.spender} (spender could not be checked)`); }
+      else { s -= 4; f("medium", `${what} to ${a.spenderName || a.spender}`); }
     }
     for (const p of c.poisoning) {
       if (p.sentToFake) { s -= 30; findings.push({ sev: "high", chain: n, text: `Funds sent to look-alike ${p.fake} (mimics ${p.mimics})`, tx: p.tx }); }
@@ -197,16 +242,32 @@ export function score(chains) {
     if (c.spamTokens.length) { s -= Math.min(10, c.spamTokens.length * 2); findings.push({ sev: "low", chain: n, text: `${c.spamTokens.length} spam/airdrop-bait token(s) held: never interact with their sites` }); }
   }
   for (const c of chains.filter(c => c.needsPaidPlan)) findings.push({ sev: "info", chain: CHAINS[c.chainId]?.name || c.chainId, text: "Skipped: this chain needs a paid Blockscout PRO plan" });
+  for (const c of chains.filter(c => c.active && c.scan)) {
+    const sc = c.scan, n = CHAINS[c.chainId]?.name || c.chainId;
+    if (sc.txTruncated || sc.transferTruncated) findings.push({ sev: "info", chain: n, truncated: true,
+      text: `Scanned the ${sc.txsScanned} most recent txs and ${sc.transfersScanned} token transfers; older approvals and transfers not checked. ` +
+        (sc.pages >= MAX_PAGES ? `This is the ${MAX_PAGES}-page ceiling` : `Run deep scan (--pages ${sc.pages < 10 ? 10 : MAX_PAGES})`) });
+    else if (sc.pages > DEFAULT_PAGES) findings.push({ sev: "info", chain: n, text: `Full history scanned (${sc.txsScanned} txs, ${sc.transfersScanned} token transfers)` });
+  }
   for (const c of chains.filter(c => c.active && c.warnings?.length)) findings.push({ sev: "info", chain: CHAINS[c.chainId]?.name || c.chainId, text: `Partial data (${c.warnings.join("; ")})` });
   s = Math.max(0, Math.min(100, s));
+  // Worst first; within a severity, the most USD at risk first (stable, so equal items keep scan order).
+  findings.sort((a, b) => SEV_RANK[a.sev] - SEV_RANK[b.sev] || (b.usdAtRisk || 0) - (a.usdAtRisk || 0));
   return { score: s, grade: s >= 85 ? "A" : s >= 70 ? "B" : s >= 50 ? "C" : s >= 30 ? "D" : "F", findings };
 }
 
 export async function healthCard(apiKey, addr, chainIds = FREE_CHAINS, opts = {}) {
   if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) throw new Error("Enter a valid 0x address");
-  const bs = new Blockscout({ apiKey, ...opts });
-  const chains = await Promise.all(chainIds.map(id => scanChain(bs, id, addr).catch(e => ({ chainId: id, active: false, error: e.message, needsPaidPlan: e.status === 402 }))));
+  const { pages: rawPages, ...bsOpts } = opts; const pages = clampPages(rawPages);
+  const bs = new Blockscout({ apiKey, ...bsOpts });
+  const chains = await Promise.all(chainIds.map(id => scanChain(bs, id, addr, { pages }).catch(e => ({ chainId: id, active: false, error: e.message, needsPaidPlan: e.status === 402 }))));
   if (chains.length && chains.every(c => c.error && /key rejected/.test(c.error))) throw new Error("Blockscout API key rejected");
   if (chains.length && chains.every(c => c.error)) throw new Error(`Could not reach Blockscout on any chain: ${chains[0].error}`);
-  return { address: addr, generatedAt: new Date().toISOString(), chains, ...score(chains), apiCalls: bs.calls, creditsRemaining: bs.credits };
+  const act = chains.filter(c => c.active);
+  const valueAtRisk = { usd: act.reduce((t, c) => t + (c.valueAtRisk?.usd || 0), 0),
+    byChain: Object.fromEntries(act.map(c => [CHAINS[c.chainId]?.name || c.chainId, c.valueAtRisk?.usd || 0])) };
+  const scanDepth = { pages, tier: pages > DEFAULT_PAGES ? "deep" : "standard", estimatedCalls: estimateCalls(chainIds.length, pages),
+    truncatedChains: act.filter(c => c.scan?.txTruncated || c.scan?.transferTruncated).map(c => CHAINS[c.chainId]?.name || c.chainId) };
+  return { address: addr, generatedAt: new Date().toISOString(), chains, ...score(chains), valueAtRisk, scanDepth, apiCalls: bs.calls,
+    creditsRemaining: bs.credits, creditsUsed: bs.creditsStart != null && bs.credits != null ? bs.creditsStart - bs.credits : null };
 }

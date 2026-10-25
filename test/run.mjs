@@ -1,5 +1,5 @@
 // Offline test with a mocked Blockscout PRO API.
-import { healthCard, ALL_CHAINS, detectPoisoning, extractApprovals } from "../docs/core.js";
+import { healthCard, ALL_CHAINS, detectPoisoning, extractApprovals, estimateCalls, approvalValueAtRisk, clampPages } from "../docs/core.js";
 import assert from "assert";
 const ME = "0x1111aaaa00000000000000000000000000001234", FRIEND = "0xabcd000000000000000000000000000000005678",
   FAKE = "0xabcdffffffffffffffffffffffffffffffff5678", DRAINER = "0x9999000000000000000000000000000000000bad",
@@ -37,7 +37,10 @@ assert.ok(r.findings.some(f => f.sev === "high" && f.text.includes(DRAINER)));
 assert.equal(r.chains.filter(c => c.needsPaidPlan).length, 3);
 assert.equal(r.findings.filter(f => f.sev === "info").length, 3);
 assert.ok(base.approvals.every(a => a.tokenName === "USDC"));
-assert.equal(r.grade, "B"); // 100-15-4-5-2 = 74
+assert.equal(r.grade, "B"); assert.equal(r.score, 74); // 100-15-4-5-2 = 74
+assert.equal(r.findings.length, 7); assert.equal(r.scanDepth.pages, 2); assert.equal(r.scanDepth.tier, "standard"); assert.deepEqual(r.scanDepth.truncatedChains, []);
+// The mock USDC has no holders_count, so its price is not trusted: units at risk shown, no USD, so DRAINER stays "high" (not critical).
+assert.ok(r.findings.some(f => f.sev === "high" && f.text.includes(DRAINER) && /150 USDC at risk, no reliable USD price/.test(f.text))); assert.equal(r.valueAtRisk.usd, 0);
 // Regression: paying a look-alike must be a high finding, and the genuine contact must never be labelled the fake.
 { const tr = (from, to, value, tx, ts) => ({ from: { hash: from }, to: { hash: to }, total: { value }, token: { symbol: "USDC" }, transaction_hash: tx, timestamp: ts });
   const hits = detectPoisoning(ME, [
@@ -98,4 +101,63 @@ const apprTx = (i, token, method, params) => ({ hash: `0xa${i}`, from: { hash: M
   // ERC-20 behaviour unchanged: approve(spender, 0) still revokes.
   assert.equal(extractApprovals(ME, [apprTx(1, USDC, "approve", [{ name: "spender", value: ROUTER }, { name: "amount", value: "0" }]),
     apprTx(0, USDC, "approve", [{ name: "spender", value: ROUTER }, { name: "amount", value: MAX }])], { [USDC]: "ERC-20" }).length, 0); }
-console.log("all tests passed:", r.grade, r.score, r.findings.length, "findings,", r.apiCalls, "mock API calls");
+// Sprint 2 (a): deep scan. /transactions has 3 pages; an old unlimited approval to an unverified spender sits on page 3.
+{ const pageTx = n => Array.from({ length: 50 }, (_, i) => ({ hash: `0xp${n}_${i}`, from: { hash: ME }, to: { hash: FRIEND }, status: "ok", method: "transfer", value: "0",
+    timestamp: `2026-0${10 - n}-01T00:00:00Z` }));
+  const p3 = pageTx(3); p3.push({ hash: "0xoldappr", from: { hash: ME }, to: { hash: USDC, name: "USDC" }, status: "ok", method: "approve", value: "0",
+    timestamp: "2026-06-01T00:00:00Z", decoded_input: { parameters: [{ name: "spender", value: DRAINER }, { name: "amount", value: MAX }] } });
+  const txPages = { 1: { items: pageTx(1), next_page_params: { page: "2" } }, 2: { items: pageTx(2), next_page_params: { page: "3" } }, 3: { items: p3, next_page_params: null } };
+  const dbp = { [`/addresses/${ME}`]: { hash: ME, coin_balance: "1" }, [`/addresses/${ME}/counters`]: { transactions_count: "151" },
+    [`/addresses/${ME}/token-balances`]: [{ value: "250000000", token: { symbol: "USDC", decimals: "6", exchange_rate: "1", holders_count: "5000000", address_hash: USDC, type: "ERC-20" } }],
+    [`/addresses/${ME}/token-transfers`]: { items: [], next_page_params: null }, [`/tokens/${USDC}`]: { symbol: "USDC", type: "ERC-20" },
+    [`/addresses/${DRAINER}`]: { hash: DRAINER, is_contract: true, is_verified: false } };
+  const run = pages => healthCard("proapi_test", ME, [10], { pages, fetchImpl: async url => { const u = new URL(url); const path = u.pathname.replace(/^\/10\/api\/v2/, "");
+    const body = path === `/addresses/${ME}/transactions` ? txPages[u.searchParams.get("page") || "1"] : dbp[path];
+    return { ok: !!body, status: body ? 200 : 404, headers: new Map(), json: async () => body }; } });
+  const std = await run(undefined), c1 = std.chains[0];
+  assert.equal(c1.scan.pages, 2); assert.equal(c1.scan.txsScanned, 100); assert.equal(c1.scan.txTruncated, true); assert.equal(c1.scan.transferTruncated, false);
+  assert.equal(c1.approvals.length, 0, "standard depth misses the page-3 approval");
+  assert.deepEqual(std.scanDepth.truncatedChains, ["Optimism"]);
+  assert.ok(std.findings.some(f => f.sev === "info" && f.truncated && /Scanned the 100 most recent txs.*--pages 10/.test(f.text)));
+  const deep = await run(10), c2 = deep.chains[0];
+  assert.equal(deep.scanDepth.tier, "deep"); assert.equal(c2.scan.pages, 10); assert.equal(c2.scan.txsScanned, 151); assert.equal(c2.scan.txTruncated, false);
+  assert.equal(c2.scan.oldestTxAt, "2026-06-01T00:00:00Z"); assert.deepEqual(deep.scanDepth.truncatedChains, []);
+  assert.equal(c2.approvals.length, 1, "deep scan finds the old approval"); assert.equal(c2.approvals[0].usdAtRisk, 250);
+  assert.equal(deep.findings[0].sev, "critical", "unlimited + unverified + $250 balance = critical"); assert.ok(deep.findings[0].text.includes("$250.00 at risk"));
+  assert.ok(deep.findings.some(f => f.sev === "info" && /Full history scanned \(151 txs/.test(f.text)));
+  assert.ok(!deep.findings.some(f => f.truncated)); assert.equal(deep.findings.length, std.findings.length + 1, "deep adds the approval finding");
+  assert.equal(deep.score, 70); assert.equal(deep.valueAtRisk.usd, 250); assert.equal(deep.valueAtRisk.byChain.Optimism, 250); }
+// Sprint 2 (b): pages clamp 1-25. (c): call estimate.
+assert.equal(clampPages(99), 25); assert.equal(clampPages(0), 1); assert.equal(clampPages(undefined), 2); assert.equal(clampPages("abc"), 2);
+{ const calls = []; const r99 = await healthCard("proapi_test", ME, [10], { pages: 99, fetchImpl: async url => { calls.push(url); return { ok: false, status: 404, headers: new Map(), json: async () => null }; } });
+  assert.equal(r99.scanDepth.pages, 25); assert.ok(!calls.some(u => /pages=/.test(u)), "pages is not forwarded to the API or Blockscout ctor");
+  const r0 = await healthCard("proapi_test", ME, [10], { pages: 0, fetchImpl: async () => ({ ok: false, status: 404, headers: new Map(), json: async () => null }) });
+  assert.equal(r0.scanDepth.pages, 1); assert.equal(r0.scanDepth.tier, "standard"); }
+assert.equal(estimateCalls(5, 2), 35); assert.equal(estimateCalls(5, 25), 265); assert.equal(estimateCalls(1, 1), 5);
+// Sprint 2: approval value-at-risk = min(allowance, balance) x exchange_rate, totals per chain and overall, findings sorted by USD at risk.
+{ const WETH = "0x4200000000000000000000000000000000000006", THIN = "0x7777000000000000000000000000000000007777", R2 = "0x3333000000000000000000000000000000003333";
+  const bals = [{ value: "150000000", token: { symbol: "USDC", decimals: "6", exchange_rate: "1", holders_count: "9000000", address_hash: USDC } },
+    { value: "2000000000000000000", token: { symbol: "WETH", decimals: "18", exchange_rate: "2600", holders_count: "900000", address_hash: WETH } },
+    { value: "1000000000000000000000", token: { symbol: "THIN", decimals: "18", exchange_rate: "5", holders_count: "12", address_hash: THIN } }];
+  const appr = [ // limited 40 USDC < 150 balance; unlimited WETH (2 x 2600); unlimited thin token (price not trusted); approval on a token not held
+    { token: USDC, spender: ROUTER, nft: false, unlimited: false, allowanceRaw: "40000000" }, { token: WETH, spender: R2, nft: false, unlimited: true, allowanceRaw: MAX },
+    { token: THIN, spender: R2, nft: false, unlimited: true, allowanceRaw: MAX }, { token: FRIEND, spender: R2, nft: false, unlimited: true, allowanceRaw: MAX },
+    { token: USDC, spender: R2, nft: true, scope: "all", unlimited: true }];
+  const v = approvalValueAtRisk(appr, bals);
+  assert.equal(appr[0].usdAtRisk, 40); assert.equal(appr[1].usdAtRisk, 5200); assert.equal(appr[2].usdAtRisk, null); assert.equal(appr[2].amountAtRisk, 1000);
+  assert.equal(appr[3].usdAtRisk, 0); assert.equal(appr[4].usdAtRisk, null); assert.equal(v.usd, 5240); assert.equal(v.unpricedApprovals, 1);
+  // End to end on two chains: total per chain and overall, and medium findings ordered by USD at risk (not scan order).
+  const VER = "0x4444000000000000000000000000000000004444";
+  const chainDb = (tokenBal, approveTxs) => ({ [`/addresses/${ME}`]: { hash: ME, coin_balance: "1" }, [`/addresses/${ME}/counters`]: { transactions_count: "2" },
+    [`/addresses/${ME}/token-balances`]: tokenBal, [`/addresses/${ME}/token-transfers`]: { items: [], next_page_params: null },
+    [`/addresses/${ME}/transactions`]: { items: approveTxs, next_page_params: null }, [`/tokens/${USDC}`]: { symbol: "USDC", type: "ERC-20" }, [`/tokens/${WETH}`]: { symbol: "WETH", type: "ERC-20" },
+    [`/addresses/${VER}`]: { hash: VER, is_contract: true, is_verified: true, name: "Router" }, [`/addresses/${DRAINER}`]: { hash: DRAINER, is_verified: false } });
+  const ap = (i, tok, sp, amt) => apprTx(i, tok, "approve", [{ name: "spender", value: sp }, { name: "amount", value: amt }]);
+  const dbs = { 10: chainDb([bals[0], bals[1]], [ap(1, USDC, VER, MAX), ap(2, WETH, VER, MAX)]), // scan order: USDC ($150) then WETH ($5200)
+    42161: chainDb([bals[0]], [ap(3, USDC, DRAINER, "100000000")]) }; // limited to unverified: not scored, but valued ($100)
+  const rv = await healthCard("proapi_test", ME, [10, 42161], { fetchImpl: async url => { const m = new URL(url).pathname.match(/^\/(\d+)\/api\/v2(.*)$/);
+    const body = dbs[m[1]][m[2]]; return { ok: !!body, status: body ? 200 : 404, headers: new Map(), json: async () => body }; } });
+  assert.equal(rv.valueAtRisk.byChain.Optimism, 5350); assert.equal(rv.valueAtRisk.byChain["Arbitrum One"], 100); assert.equal(rv.valueAtRisk.usd, 5450);
+  const meds = rv.findings.filter(f => f.sev === "medium"); assert.deepEqual(meds.map(f => f.usdAtRisk), [5200, 150], "sorted by USD at risk");
+  assert.ok(!rv.findings.some(f => f.sev === "critical" || f.sev === "high")); }
+console.log("all tests passed:", r.grade, r.score, r.findings.length, "findings,", r.apiCalls, "mock API calls; deep-scan (a-c) + value-at-risk tests ok");
